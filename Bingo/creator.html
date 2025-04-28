@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Creator</title>
+    <style>
+        :root {
+            --primary-color: #2dd4bf;
+            --secondary-color: #0f766e;
+            --background-color: #f8fafc;
+            --text-color: #334155;
+            --accent-color: #f59e0b;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --border-radius: 12px;
+            --cell-size: clamp(60px, 5vw, 80px);
+            --grid-gap: 4px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            background-color: #f0f2f5;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+            gap: 20px;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px;
+            text-align: center;
+            z-index: 999;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .instructions {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            max-width: 80%;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .instructions.minimized {
+            top: 20px;
+            right: 20px;
+            left: auto;
+            transform: none;
+            max-width: 40px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .instructions-icon {
+            font-size: 24px;
+            color: var(--primary-color);
+            flex-shrink: 0;
+        }
+
+        .instructions-text {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .instructions-text p {
+            margin-bottom: 5px;
+        }
+
+        .close-instructions,
+        .minimize-instructions {
+            cursor: pointer;
+            padding: 5px;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+        }
+
+        .close-instructions:hover,
+        .minimize-instructions:hover {
+            color: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .control-button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(45, 212, 191, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(45, 212, 191, 0.4);
+        }
+
+        .control-button.secondary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .main-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1600px;
+            margin-top: 70px;
+        }
+
+        .left-container {
+            flex: 1;
+            max-width: 400px;
+            min-width: 350px;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            overflow-y: auto;
+            height: calc(100vh - 100px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: sticky;
+            top: 90px;
+        }
+
+        .grid-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: white;
+            border-radius: var(--border-radius);
+            border: 4px solid var(--secondary-color);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .grid-title {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: var(--secondary-color);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .grid-wrapper {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 8px;
+            padding: 15px;
+            width: 100%;
+            height: 100%;
+            margin-top: 40px;
+        }
+
+        .cell {
+            background: rgba(243, 244, 246, 0.8);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .cell.filled {
+            border: 2px solid var(--primary-color);
+        }
+
+        .cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cell .upload-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #9ca3af;
+        }
+
+        .cell .title-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 5px;
+            font-size: 10px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cell:hover .title-overlay {
+            opacity: 1;
+        }
+
+        .right-container {
+            flex: 2;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            max-width: 1200px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow-y: auto;
+            height: calc(100vh - 100px);
+        }
+
+        .entry {
+            background: white;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .entry:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .entry-header {
+            background: var(--background-color);
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .entry-number {
+            background: var(--primary-color);
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .entry-img-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .entry img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .entry img:hover {
+            transform: scale(1.05);
+        }
+
+        .entry-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .input-container {
+            position: relative;
+            margin-top: 10px;
+        }
+
+        .input-label {
+            position: absolute;
+            left: 12px;
+            top: -8px;
+            background: white;
+            padding: 0 5px;
+            font-size: 12px;
+            color: var(--secondary-color);
+            z-index: 1;
+        }
+
+        .entry input[type="text"],
+        .entry textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .entry input[type="text"]:hover,
+        .entry textarea:hover,
+        .entry input[type="text"]:focus,
+        .entry textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+        }
+
+        .entry textarea {
+            resize: none;
+            height: 80px;
+        }
+
+        .entry input[type="file"] {
+            display: none;
+        }
+
+        .entry label {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            width: 100%;
+            text-align: center;
+        }
+
+        .entry label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(45, 212, 191, 0.3);
+        }
+
+        .character-count {
+            font-size: 12px;
+            color: #9ca3af;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .display-area {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: hidden;
+        }
+
+        .display-area img {
+            max-width: 100%;
+            max-height: 70vh;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .display-area .text-content {
+            font-size: 16px;
+            color: #333;
+            max-height: 20vh;
+            overflow-y: auto;
+            padding: 10px;
+            background: var(--background-color);
+            border-radius: 8px;
+        }
+
+        .display-area .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .display-area .close-button:hover {
+            background: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(3px);
+            z-index: 999;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--success-color);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification.error {
+            background: var(--error-color);
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 1200px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            .left-container {
+                max-width: 100%;
+                position: relative;
+                top: 0;
+                height: auto;
+                min-height: 400px;
+            }
+
+            .right-container {
+                max-width: 100%;
+                height: auto;
+            }
+
+            .grid-container {
+                aspect-ratio: 1/1;
+                max-width: 500px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .instructions {
+                max-width: 95%;
+            }
+
+            .grid-wrapper {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(8, 1fr);
+            }
+
+            .entry {
+                padding: 10px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .control-button {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Bingo Creator</h1>
+        <p>製作你的專屬賓果卡片</p>
+    </div>
+
+    <div class="instructions" id="instructions">
+        <div class="instructions-icon">ℹ️</div>
+        <div class="instructions-text">
+            <p>使用說明：</p>
+            <p>1. 點選右側區域的「選擇圖片」來上傳題目圖片</p>
+            <p>2. 輸入題目標題（最多50字）</p>
+            <p>3. 輸入題目敘述（最多100字）</p>
+            <p>4. 上傳後的圖片會自動顯示在左側的賓果卡片中</p>
+            <p>5. 點選賓果卡片的格子可以檢視大圖和詳細介紹</p>
+        </div>
+        <div class="minimize-instructions" id="minimize-instructions">➖</div>
+        <div class="close-instructions" id="close-instructions">✕</div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-container">
+            <div class="grid-container">
+                <div class="grid-title">我的賓果卡片</div>
+                <div class="grid-wrapper" id="grid-wrapper">
+                    <!-- Grid cells will be generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="right-container" id="uploadArea">
+            <!-- Upload entries will be generated by JavaScript -->
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="control-button secondary" id="resetButton">重置</button>
+        <button class="control-button" id="downloadButton">上傳</button>
+        <button class="control-button secondary" id="showInstructionsButton">顯示說明</button>
+    </div>
+
+    <div class="notification" id="notification">操作成功！</div>
+    <div class="overlay" id="overlay"></div>
+    <div class="display-area" id="displayArea">
+        <div class="close-button" id="closeDisplay">✕</div>
+        <img id="displayImg" src="" alt="賓果項目">
+        <div class="text-content" id="displayText"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Constants
+            const GRID_SIZE = 5; // 5x5 grid
+            const TOTAL_CELLS = GRID_SIZE * GRID_SIZE; // 25 cells total
+            const MAX_TITLE_LENGTH = 50;
+            const MAX_DESC_LENGTH = 100;
+
+            // Elements
+            const gridWrapper = document.getElementById("grid-wrapper");
+            const uploadArea = document.getElementById("uploadArea");
+            const overlay = document.getElementById("overlay");
+            const displayArea = document.getElementById("displayArea");
+            const displayImg = document.getElementById("displayImg");
+            const displayText = document.getElementById("displayText");
+            const closeDisplay = document.getElementById("closeDisplay");
+            const notification = document.getElementById("notification");
+            const instructions = document.getElementById("instructions");
+            const minimizeInstructions = document.getElementById("minimize-instructions");
+            const closeInstructions = document.getElementById("close-instructions");
+            const showInstructionsButton = document.getElementById("showInstructionsButton");
+            const resetButton = document.getElementById("resetButton");
+            const downloadButton = document.getElementById("downloadButton");
+
+            // Initialize grid
+            function initializeGrid() {
+                gridWrapper.innerHTML = '';
+                for (let i = 0; i < TOTAL_CELLS; i++) {
+                    const cell = document.createElement("div");
+                    cell.className = "cell";
+                    cell.setAttribute("data-id", i);
+                    cell.innerHTML = `<div class="upload-icon">+</div>`;
+                    gridWrapper.appendChild(cell);
+
+                    // Add event listener for cell click
+                    cell.addEventListener("click", () => {
+                        const cellImg = cell.querySelector('img');
+                        if (cellImg) {
+                            displayImg.src = cellImg.src;
+                            displayImg.style.display = 'block';
+
+                            const entry = document.querySelector(`.entry[data-id="${i}"]`);
+                            if (entry) {
+                                const nameInput = entry.querySelector('input[type="text"]');
+                                const textInput = entry.querySelector('textarea');
+                                if (nameInput && textInput) {
+                                    displayText.innerHTML = `<strong>${nameInput.value}</strong><br><br>${textInput.value}`;
+                                    displayText.style.display = 'block';
+                                }
+                            }
+
+                            displayArea.style.display = 'block';
+                            overlay.style.display = 'block';
+                        }
+                    });
+                }
+            }
+
+            // Initialize upload area
+            function initializeUploadArea() {
+                uploadArea.innerHTML = '';
+                for (let i = 0; i < TOTAL_CELLS; i++) {
+                    const entry = document.createElement("div");
+                    entry.className = "entry";
+                    entry.setAttribute("data-id", i);
+
+                    const entryHeader = document.createElement("div");
+                    entryHeader.className = "entry-header";
+                    
+                    const entryTitle = document.createElement("div");
+                    entryTitle.textContent = `賓果項目`;
+                    
+                    const entryNumber = document.createElement("div");
+                    entryNumber.className = "entry-number";
+                    entryNumber.textContent = i + 1;
+                    
+                    entryHeader.appendChild(entryTitle);
+                    entryHeader.appendChild(entryNumber);
+
+                    const imgContainer = document.createElement("div");
+                    imgContainer.className = "entry-img-container";
+                    
+                    const img = document.createElement("img");
+                    img.src = "https://via.placeholder.com/300?text=Upload+Image";
+                    img.alt = "上傳圖片";
+                    img.id = `preview-${i}`;
+                    
+                    imgContainer.appendChild(img);
+
+                    const entryForm = document.createElement("div");
+                    entryForm.className = "entry-form";
+
+                    const fileInput = document.createElement("input");
+                    fileInput.type = "file";
+                    fileInput.accept = "image/*";
+                    fileInput.id = `file-${i}`;
+                    fileInput.style.display = "none";
+
+                    const fileLabel = document.createElement("label");
+                    fileLabel.htmlFor = `file-${i}`;
+                    fileLabel.textContent = "選擇圖片";
+
+                    const nameContainer = document.createElement("div");
+                    nameContainer.className = "input-container";
+                    
+                    const nameLabel = document.createElement("div");
+                    nameLabel.className = "input-label";
+                    nameLabel.textContent = "題目標題";
+                    
+                    const nameInput = document.createElement("input");
+                    nameInput.type = "text";
+                    nameInput.placeholder = "請輸入題目標題";
+                    nameInput.maxLength = MAX_TITLE_LENGTH;
+                    nameInput.id = `title-${i}`;
+                    
+                    const titleCount = document.createElement("div");
+                    titleCount.className = "character-count";
+                    titleCount.id = `title-count-${i}`;
+                    titleCount.textContent = `0/${MAX_TITLE_LENGTH}`;
+                    
+                    nameContainer.appendChild(nameLabel);
+                    nameContainer.appendChild(nameInput);
+                    nameContainer.appendChild(titleCount);
+
+                    const textContainer = document.createElement("div");
+                    textContainer.className = "input-container";
+                    
+                    const textLabel = document.createElement("div");
+                    textLabel.className = "input-label";
+                    textLabel.textContent = "題目敘述";
+                    
+                    const textInput = document.createElement("textarea");
+                    textInput.placeholder = "請輸入題目敘述";
+                    textInput.maxLength = MAX_DESC_LENGTH;
+                    textInput.id = `desc-${i}`;
+                    
+                    const descCount = document.createElement("div");
+                    descCount.className = "character-count";
+                    descCount.id = `desc-count-${i}`;
+                    descCount.textContent = `0/${MAX_DESC_LENGTH}`;
+                    
+                    textContainer.appendChild(textLabel);
+                    textContainer.appendChild(textInput);
+                    textContainer.appendChild(descCount);
+
+                    entryForm.appendChild(fileLabel);
+                    entryForm.appendChild(fileInput);
+                    entryForm.appendChild(nameContainer);
+                    entryForm.appendChild(textContainer);
+
+                    entry.appendChild(entryHeader);
+                    entry.appendChild(imgContainer);
+                    entry.appendChild(entryForm);
+
+                    uploadArea.appendChild(entry);
+
+                    // File upload event
+                    fileInput.addEventListener("change", (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                img.src = event.target.result;
+
+                                const entry = e.target.closest('.entry');
+                                const id = entry.getAttribute('data-id');
+                                const targetCell = document.querySelector(`.cell[data-id="${id}"]`);
+
+                                let cellImg = targetCell.querySelector('img');
+                                if (!cellImg) {
+                                    cellImg = document.createElement('img');
+                                    targetCell.innerHTML = '';
+                                    targetCell.appendChild(cellImg);
+                                    
+                                    // Add overlay for title
+                                    const titleOverlay = document.createElement('div');
+                                    titleOverlay.className = 'title-overlay';
+                                    targetCell.appendChild(titleOverlay);
+                                }
+                                
+                                cellImg.src = event.target.result;
+                                targetCell.classList.add('filled');
+                                
+                                // Update the title overlay
+                                const titleOverlay = targetCell.querySelector('.title-overlay');
+                                const titleInput = document.querySelector(`#title-${id}`);
+                                if (titleOverlay && titleInput) {
+                                    titleOverlay.textContent = titleInput.value || '未命名';
+                                }
+                                
+                                showNotification('圖片上傳成功！');
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+
+                    // Character count for title
+                    nameInput.addEventListener('input', (e) => {
+                        const count = e.target.value.length;
+                        const countElement = document.getElementById(`title-count-${i}`);
+                        countElement.textContent = `${count}/${MAX_TITLE_LENGTH}`;
+                        
+                        // Update the title overlay in the cell
+                        const cell = document.querySelector(`.cell[data-id="${i}"]`);
+                        const titleOverlay = cell.querySelector('.title-overlay');
+                        if (titleOverlay) {
+                            titleOverlay.textContent = e.target.value || '未命名';
+                        }
+                    });
+
+                    // Character count for description
+                    textInput.addEventListener('input', (e) => {
+                        const count = e.target.value.length;
+                        const countElement = document.getElementById(`desc-count-${i}`);
+                        countElement.textContent = `${count}/${MAX_DESC_LENGTH}`;
+                    });
+                }
+            }
+
+            // Show notification
+            function showNotification(message, isError = false) {
+                notification.textContent = message;
+                notification.className = isError ? 'notification error show' : 'notification show';
+                
+                setTimeout(() => {
+                    notification.className = notification.className.replace('show', '');
+                }, 3000);
+            }
+
+            // Reset form
+            function resetForm() {
+                if (confirm('確定要重置所有內容嗎？此操作無法撤銷。')) {
+                    initializeGrid();
+                    initializeUploadArea();
+                    showNotification('所有內容已重置');
+                }
+            }
+
+            // Download bingo card (mock function)
+            function downloadBingoCard() {
+                // In a real implementation, this would generate an image of the bingo card
+                showNotification('賓果卡片下載功能即將推出！');
+            }
+
+            // Event listeners
+            overlay.addEventListener('click', () => {
+                displayArea.style.display = 'none';
+                overlay.style.display = 'none';
+            });
+
+            closeDisplay.addEventListener('click', () => {
+                displayArea.style.display = 'none';
+                overlay.style.display = 'none';
+            });
+
+            closeInstructions.addEventListener('click', () => {
+                instructions.style.display = 'none';
+            });
+
+            minimizeInstructions.addEventListener('click', () => {
+                instructions.classList.add('minimized');
+                minimizeInstructions.style.display = 'none';
+            });
+
+            instructions.addEventListener('click', (e) => {
+                if (instructions.classList.contains('minimized')) {
+                    instructions.classList.remove('minimized');
+                    minimizeInstructions.style.display = 'block';
+                    e.stopPropagation();
+                }
+            });
+
+            showInstructionsButton.addEventListener('click', () => {
+                instructions.style.display = 'flex';
+                instructions.classList.remove('minimized');
+                minimizeInstructions.style.display = 'block';
+            });
+
+            resetButton.addEventListener('click', resetForm);
+            downloadButton.addEventListener('click', downloadBingoCard);
+
+            // Initialize
+            initializeGrid();
+            initializeUploadArea();
+        });
+    </script>
+</body>
+
+</html>

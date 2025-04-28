@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>註冊</title>
+  <style>
+    body {
+      background: #f8fafc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Microsoft JhengHei', sans-serif;
+      margin: 0;
+    }
+    .register-container {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .register-container h2 {
+      text-align: center;
+      color: #0f766e;
+    }
+    .register-container input {
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+      transition: 0.3s;
+    }
+    .register-container input:focus {
+      border-color: #2dd4bf;
+      box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+    }
+    .register-container button {
+      background: linear-gradient(135deg, #2dd4bf, #0f766e);
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .register-container button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(45, 212, 191, 0.4);
+    }
+    .register-container .link {
+      text-align: center;
+      font-size: 14px;
+      color: #64748b;
+    }
+    .register-container .link a {
+      color: #2dd4bf;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="register-container">
+  <h2>註冊</h2>
+  <input type="text" placeholder="使用者名稱" required>
+  <input type="email" placeholder="電子郵件" required>
+  <input type="password" placeholder="密碼" required>
+  <input type="password" placeholder="確認密碼" required>
+  <button type="submit">註冊</button>
+  <div class="link">
+    已經有帳號？<a href="login.html">登入</a>
+  </div>
+</div>
+
+</body>
+</html>
