@@ -73,15 +73,6 @@
             transition: all 0.3s ease;
         }
 
-        .instructions.minimized {
-            top: 20px;
-            right: 20px;
-            left: auto;
-            transform: none;
-            max-width: 40px;
-            overflow: hidden;
-            cursor: pointer;
-        }
 
         .instructions-icon {
             font-size: 24px;
@@ -96,18 +87,17 @@
 
         .instructions-text p {
             margin-bottom: 5px;
+            text-align: left
         }
 
-        .close-instructions,
-        .minimize-instructions {
+        .close-instructions {
             cursor: pointer;
             padding: 5px;
             color: var(--text-color);
             transition: all 0.2s ease;
         }
 
-        .close-instructions:hover,
-        .minimize-instructions:hover {
+        .close-instructions:hover {
             color: var(--primary-color);
             transform: scale(1.1);
         }
@@ -567,21 +557,21 @@
 
 <body>
     <div class="header">
-        <h1>Bingo Creator</h1>
-        <p>製作你的專屬賓果卡片</p>
+        <h1>Bingo 製作</h1>
     </div>
 
     <div class="instructions" id="instructions">
         <div class="instructions-icon">ℹ️</div>
         <div class="instructions-text">
-            <p>使用說明：</p>
-            <p>1. 點選右側區域的「選擇圖片」來上傳題目圖片</p>
-            <p>2. 輸入題目標題（最多50字）</p>
-            <p>3. 輸入題目敘述（最多100字）</p>
-            <p>4. 上傳後的圖片會自動顯示在左側的賓果卡片中</p>
-            <p>5. 點選賓果卡片的格子可以檢視大圖和詳細介紹</p>
+            <align="left">
+                <p>使用說明：</p>
+                <p>1. 點選右側區域的「選擇圖片」來上傳題目圖片</p>
+                <p>2. 輸入題目標題（最多50字）</p>
+                <p>3. 輸入題目敘述（最多100字）</p>
+                <p>4. 上傳後的圖片會自動顯示在左側的賓果卡片中</p>
+                <p>5. 點選賓果卡片的格子可以檢視大圖和詳細介紹</p>
+                </align>
         </div>
-        <div class="minimize-instructions" id="minimize-instructions">➖</div>
         <div class="close-instructions" id="close-instructions">✕</div>
     </div>
 
@@ -632,7 +622,6 @@
             const closeDisplay = document.getElementById("closeDisplay");
             const notification = document.getElementById("notification");
             const instructions = document.getElementById("instructions");
-            const minimizeInstructions = document.getElementById("minimize-instructions");
             const closeInstructions = document.getElementById("close-instructions");
             const showInstructionsButton = document.getElementById("showInstructionsButton");
             const resetButton = document.getElementById("resetButton");
@@ -682,25 +671,25 @@
 
                     const entryHeader = document.createElement("div");
                     entryHeader.className = "entry-header";
-                    
+
                     const entryTitle = document.createElement("div");
                     entryTitle.textContent = `賓果項目`;
-                    
+
                     const entryNumber = document.createElement("div");
                     entryNumber.className = "entry-number";
                     entryNumber.textContent = i + 1;
-                    
+
                     entryHeader.appendChild(entryTitle);
                     entryHeader.appendChild(entryNumber);
 
                     const imgContainer = document.createElement("div");
                     imgContainer.className = "entry-img-container";
-                    
+
                     const img = document.createElement("img");
                     img.src = "https://via.placeholder.com/300?text=Upload+Image";
                     img.alt = "上傳圖片";
                     img.id = `preview-${i}`;
-                    
+
                     imgContainer.appendChild(img);
 
                     const entryForm = document.createElement("div");
@@ -718,43 +707,43 @@
 
                     const nameContainer = document.createElement("div");
                     nameContainer.className = "input-container";
-                    
+
                     const nameLabel = document.createElement("div");
                     nameLabel.className = "input-label";
                     nameLabel.textContent = "題目標題";
-                    
+
                     const nameInput = document.createElement("input");
                     nameInput.type = "text";
                     nameInput.placeholder = "請輸入題目標題";
                     nameInput.maxLength = MAX_TITLE_LENGTH;
                     nameInput.id = `title-${i}`;
-                    
+
                     const titleCount = document.createElement("div");
                     titleCount.className = "character-count";
                     titleCount.id = `title-count-${i}`;
                     titleCount.textContent = `0/${MAX_TITLE_LENGTH}`;
-                    
+
                     nameContainer.appendChild(nameLabel);
                     nameContainer.appendChild(nameInput);
                     nameContainer.appendChild(titleCount);
 
                     const textContainer = document.createElement("div");
                     textContainer.className = "input-container";
-                    
+
                     const textLabel = document.createElement("div");
                     textLabel.className = "input-label";
                     textLabel.textContent = "題目敘述";
-                    
+
                     const textInput = document.createElement("textarea");
                     textInput.placeholder = "請輸入題目敘述";
                     textInput.maxLength = MAX_DESC_LENGTH;
                     textInput.id = `desc-${i}`;
-                    
+
                     const descCount = document.createElement("div");
                     descCount.className = "character-count";
                     descCount.id = `desc-count-${i}`;
                     descCount.textContent = `0/${MAX_DESC_LENGTH}`;
-                    
+
                     textContainer.appendChild(textLabel);
                     textContainer.appendChild(textInput);
                     textContainer.appendChild(descCount);
@@ -787,23 +776,23 @@
                                     cellImg = document.createElement('img');
                                     targetCell.innerHTML = '';
                                     targetCell.appendChild(cellImg);
-                                    
+
                                     // Add overlay for title
                                     const titleOverlay = document.createElement('div');
                                     titleOverlay.className = 'title-overlay';
                                     targetCell.appendChild(titleOverlay);
                                 }
-                                
+
                                 cellImg.src = event.target.result;
                                 targetCell.classList.add('filled');
-                                
+
                                 // Update the title overlay
                                 const titleOverlay = targetCell.querySelector('.title-overlay');
                                 const titleInput = document.querySelector(`#title-${id}`);
                                 if (titleOverlay && titleInput) {
                                     titleOverlay.textContent = titleInput.value || '未命名';
                                 }
-                                
+
                                 showNotification('圖片上傳成功！');
                             };
                             reader.readAsDataURL(file);
@@ -815,7 +804,7 @@
                         const count = e.target.value.length;
                         const countElement = document.getElementById(`title-count-${i}`);
                         countElement.textContent = `${count}/${MAX_TITLE_LENGTH}`;
-                        
+
                         // Update the title overlay in the cell
                         const cell = document.querySelector(`.cell[data-id="${i}"]`);
                         const titleOverlay = cell.querySelector('.title-overlay');
@@ -837,7 +826,7 @@
             function showNotification(message, isError = false) {
                 notification.textContent = message;
                 notification.className = isError ? 'notification error show' : 'notification show';
-                
+
                 setTimeout(() => {
                     notification.className = notification.className.replace('show', '');
                 }, 3000);
@@ -855,7 +844,7 @@
             // Download bingo card (mock function)
             function downloadBingoCard() {
                 // In a real implementation, this would generate an image of the bingo card
-                showNotification('賓果卡片下載功能即將推出！');
+                showNotification('上傳中...');
             }
 
             // Event listeners
@@ -873,24 +862,6 @@
                 instructions.style.display = 'none';
             });
 
-            minimizeInstructions.addEventListener('click', () => {
-                instructions.classList.add('minimized');
-                minimizeInstructions.style.display = 'none';
-            });
-
-            instructions.addEventListener('click', (e) => {
-                if (instructions.classList.contains('minimized')) {
-                    instructions.classList.remove('minimized');
-                    minimizeInstructions.style.display = 'block';
-                    e.stopPropagation();
-                }
-            });
-
-            showInstructionsButton.addEventListener('click', () => {
-                instructions.style.display = 'flex';
-                instructions.classList.remove('minimized');
-                minimizeInstructions.style.display = 'block';
-            });
 
             resetButton.addEventListener('click', resetForm);
             downloadButton.addEventListener('click', downloadBingoCard);
