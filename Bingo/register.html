@@ -71,15 +71,53 @@
 
 <div class="register-container">
   <h2>註冊</h2>
-  <input type="text" placeholder="使用者名稱" required>
-  <input type="email" placeholder="電子郵件" required>
-  <input type="password" placeholder="密碼" required>
-  <input type="password" placeholder="確認密碼" required>
-  <button type="submit">註冊</button>
+  <input id="registerName" type="text" placeholder="使用者名稱" required>
+  <input id="registerEmail" type="email" placeholder="電子郵件" required>
+  <input id="registerPassword" type="password" placeholder="密碼" required>
+  <input id="registerConfirm" type="password" placeholder="確認密碼" required>
+  <button type="button" id="registerBtn">註冊</button>
   <div class="link">
     已經有帳號？<a href="login.html">登入</a>
   </div>
 </div>
+
+<script>
+  document.getElementById("registerBtn").addEventListener("click", () => {
+    const name = document.getElementById("registerName").value;
+    const email = document.getElementById("registerEmail").value;
+    const password = document.getElementById("registerPassword").value;
+    const confirm = document.getElementById("registerConfirm").value;
+
+    // 驗證空白
+    if (!name || !email || !password || !confirm) {
+      alert("請填寫所有欄位。");
+      return;
+    }
+
+    if (password !== confirm) {
+      alert("密碼與確認密碼不相符");
+      return;
+    }
+
+    fetch("http://localhost:3000/user/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "created") {
+        alert("註冊成功！");
+        location.href = "login.html";
+      } else if (data.error) {
+        alert("註冊失敗：" + data.error);
+      }
+    })
+    .catch(err => alert("發生錯誤：" + err.toString()));
+  });
+</script>
 
 </body>
 </html>
