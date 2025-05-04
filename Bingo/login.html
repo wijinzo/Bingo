@@ -71,14 +71,44 @@
 
 <div class="login-container">
   <h2>登入</h2>
-  <input type="text" placeholder="使用者名稱" required>
-  <input type="password" placeholder="密碼" required>
-  <!-- 還沒連後端 -->
-  <button type="button" onclick="location.href='home.html'">登入</button>
+  <input id="loginUsername" type="text" placeholder="使用者名稱" required>
+  <input id="loginPassword" type="password" placeholder="密碼" required>
+  <button type="button" id="loginBtn">登入</button>
+  <!--<div class="link">
+    忘記密碼？<a href="reset_password.html">重設密碼</a> -->
   <div class="link">
     還沒有帳號？<a href="register.html">註冊</a>
   </div>
 </div>
+
+<script>
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const email = document.getElementById("loginUsername").value;
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+      const response = await fetch("http://localhost:3000/user/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("登入成功！");
+        location.href = "home.html";
+      } else {
+        alert(result.error || "登入失敗，請檢查帳密");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("無法連線到伺服器");
+    }
+  });
+</script>
 
 </body>
 </html>
