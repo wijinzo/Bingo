@@ -854,8 +854,44 @@
 
 
             resetButton.addEventListener('click', resetForm);
-            downloadButton.addEventListener('click', downloadBingoCard);
+            downloadButton.addEventListener('click', async () => {
+                const entries = document.querySelectorAll('.entry');
+                const founderId = 1; // ⚠️ TODO: 改為實際登入使用者的 ID
 
+                for (const entry of entries) {
+                    const id = entry.getAttribute('data-id');
+                    const title = entry.querySelector(`input[type="text"]`).value;
+                    const desc = entry.querySelector('textarea').value;
+                    const fileInput = entry.querySelector('input[type="file"]');
+                    const file = fileInput.files[0];
+
+                    if (!title || !desc || !file) {
+                        showNotification(`第 ${parseInt(id) + 1} 項未填寫完整`, true);
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('title', title);
+                    formData.append('desc', desc);
+                    formData.append('file', file);
+                    formData.append('founderId', founderId);
+
+                    try {
+                        const response = await fetch('http://localhost:3000/upload-article', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.message || '發生錯誤');
+
+                        showNotification(`第 ${parseInt(id) + 1} 項上傳成功 ✅`);
+                    } catch (error) {
+                        showNotification(`第 ${parseInt(id) + 1} 上傳失敗 ❌`, true);
+                        console.error('Upload Error:', error);
+                    }
+                }
+            });
             // Initialize
             initializeGrid();
             initializeUploadArea();
