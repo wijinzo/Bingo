@@ -2,7 +2,9 @@
 
 ## 待完成: 
 
-### creator:顯示說明壞了 Bingo主題名稱
+### creator:顯示說明壞了 預覽重新排版
+### creatordashboard
+### playerdashboard
 ###Name
 
 ## 前後端連接:
@@ -11,3 +13,5 @@
 ### player: 連接資料庫後顯示bingo，在後端連上後需要再重做bingo cell的內容(目前是手刻，而且只有標題)
 ### player_bingo: 目前只有雛形，還需要完成效果與完成的驗證，及點擊格子的效果
 ### 還缺一個bingo 管理頁面
+### creator後端關鍵字: 
+handleUpload handleFileUpload handleDelete resetButton uploadBingoTitle(最後面)
