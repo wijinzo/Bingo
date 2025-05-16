@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="zh-TW">
 
 <head>
@@ -158,7 +159,24 @@
             align-items: center;
             position: sticky;
             top: 90px;
+            flex-direction: column;
         }
+
+        .bingo-title-container button#uploadBingoTitle {
+            padding: 10px 16px;
+            font-size: 14px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: bold;
+            border: none;
+            box-shadow: 0 4px 10px rgba(45, 212, 191, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+
 
         .grid-container {
             position: relative;
@@ -184,7 +202,7 @@
             padding: 15px;
             width: 100%;
             height: 100%;
-            margin-top: 2%;
+            /*margin-top: 2%;*/
             margin-bottom: 2%;
         }
 
@@ -247,7 +265,7 @@
         .right-container {
             flex: 2;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
             max-width: 1200px;
             padding: 20px;
@@ -259,6 +277,7 @@
         }
 
         .entry {
+            height: 100%;
             background: white;
             border: 1px solid #e2e8f0;
             display: flex;
@@ -268,6 +287,20 @@
             border-radius: var(--border-radius);
             transition: all 0.3s ease;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .entry-control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 15px;
+            align-items: stretch;
+
+        }
+
+        .entry-control-buttons .control-button .entry-control-buttons .control-button.secondary {
+            width: 100%;
+
         }
 
         .entry:hover {
@@ -328,6 +361,10 @@
         }
 
         .input-container {
+            flex: 1 1 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
             position: relative;
             margin-top: 10px;
         }
@@ -343,8 +380,20 @@
             z-index: 1;
         }
 
+        .input[type="text"] {
+            text-align: left;
+            padding: 8px;
+            line-height: 1;
+            /* 正常的行高 */
+            vertical-align: baseline;
+            /* 恢復基線對齊 */
+        }
+
         .entry input[type="text"],
         .entry textarea {
+            flex: 1 1 0;
+            min-height: 0;
+            resize: none;
             width: 100%;
             padding: 12px;
             font-size: 14px;
@@ -352,6 +401,8 @@
             border-radius: 8px;
             background: white;
             transition: all 0.3s ease;
+            resize: none;
+            height: 80px;
         }
 
         .entry input[type="text"]:hover,
@@ -361,11 +412,6 @@
             border-color: var(--primary-color);
             outline: none;
             box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
-        }
-
-        .entry textarea {
-            resize: none;
-            height: 80px;
         }
 
         .entry input[type="file"] {
@@ -412,7 +458,10 @@
             z-index: 1000;
             max-width: 90vw;
             max-height: 90vh;
-            overflow: hidden;
+            overflow-y: auto;
+            /* 啟用垂直滾動條 */
+            overflow-x: hidden;
+            /* 隱藏水平滾動條 */
         }
 
         .display-area img {
@@ -431,6 +480,9 @@
             padding: 10px;
             background: var(--background-color);
             border-radius: 8px;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            line-height: 1.4;
         }
 
         .display-area .close-button {
@@ -492,6 +544,53 @@
             background: var(--error-color);
         }
 
+        .display-area .text-content h2 {
+            font-size: 1.25em;
+            color: var(--secondary-color);
+            margin: 8px 0 4px 0;
+        }
+
+        .display-area .text-content strong {
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+
+        .display-area .text-content p {
+            margin: 4px 0;
+            /* 減少段落間距 */
+        }
+
+        .bingo-title-container {
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .bingo-title-container input {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            background: white;
+            transition: all 0.3s ease;
+            color: var(--secondary-color);
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .bingo-title-container input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+        }
+
+        .bingo-title-container .character-count {
+            text-align: right;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+
         /* 響應式調整 */
         @media (max-width: 1200px) {
             .main-container {
@@ -544,12 +643,15 @@
             }
         }
     </style>
+
+
 </head>
 
 <body>
     <div class="header">
         <h1>Bingo 製作</h1>
     </div>
+
 
     <div class="instructions" id="instructions">
         <div class="instructions-icon">ℹ️</div>
@@ -591,23 +693,23 @@
     <div class="display-area" id="displayArea">
         <div class="close-button" id="closeDisplay">✕</div>
         <img id="displayImg" src="" alt="賓果項目">
+        <div class="text-content" id="displayTitle"></div>
         <div class="text-content" id="displayText"></div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Constants
-            const GRID_SIZE = 3; 
-            const TOTAL_CELLS = GRID_SIZE * GRID_SIZE; 
+            const GRID_SIZE = 3;
+            const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
             const MAX_TITLE_LENGTH = 50;
             const MAX_DESC_LENGTH = 100;
 
-            // Elements
             const gridWrapper = document.getElementById("grid-wrapper");
             const uploadArea = document.getElementById("uploadArea");
             const overlay = document.getElementById("overlay");
             const displayArea = document.getElementById("displayArea");
             const displayImg = document.getElementById("displayImg");
+            const displayTitle = document.getElementById("displayTitle");
             const displayText = document.getElementById("displayText");
             const closeDisplay = document.getElementById("closeDisplay");
             const notification = document.getElementById("notification");
@@ -617,8 +719,10 @@
             const resetButton = document.getElementById("resetButton");
             const downloadButton = document.getElementById("downloadButton");
 
-            // Initialize grid
             function initializeGrid() {
+
+
+
                 gridWrapper.innerHTML = '';
                 for (let i = 0; i < TOTAL_CELLS; i++) {
                     const cell = document.createElement("div");
@@ -627,276 +731,337 @@
                     cell.innerHTML = `<div class="upload-icon">+</div>`;
                     gridWrapper.appendChild(cell);
 
-                    // Add event listener for cell click
                     cell.addEventListener("click", () => {
                         const cellImg = cell.querySelector('img');
                         if (cellImg) {
-                            displayImg.src = cellImg.src;
-                            displayImg.style.display = 'block';
-
-                            const entry = document.querySelector(`.entry[data-id="${i}"]`);
-                            if (entry) {
+                            const entry = document.querySelector(`.entry[data-id="${i * 2}"]`);
+                            const descEntry = document.querySelector(`.entry[data-id="${i * 2 + 1}"]`);
+                            if (entry && descEntry) {
                                 const nameInput = entry.querySelector('input[type="text"]');
-                                const textInput = entry.querySelector('textarea');
-                                if (nameInput && textInput) {
-                                    displayText.innerHTML = `<strong>${nameInput.value}</strong><br><br>${textInput.value}`;
-                                    displayText.style.display = 'block';
+                                const locaInput = descEntry.querySelector('textarea[id^="loca-desc-"]');
+                                const textInput = descEntry.querySelector('textarea[id^="topic-desc-"]');
+                                if (nameInput && textInput && locaInput) {
+                                    displayTitle.innerHTML = `<h1><strong>${nameInput.value}</strong></h1>`;
+                                    displayText.innerHTML = `<h2>景點介紹</h2><p>${locaInput.value}</p><h2>題目說明</h2><p>${textInput.value}</p>`;
+                                    displayImg.src = cellImg.src;
+                                    displayArea.style.display = 'block';
+                                    overlay.style.display = 'block';
                                 }
                             }
-
-                            displayArea.style.display = 'block';
-                            overlay.style.display = 'block';
                         }
                     });
                 }
             }
 
-            // Initialize upload area
             function initializeUploadArea() {
                 uploadArea.innerHTML = '';
-                for (let i = 0; i < TOTAL_CELLS; i++) {
+                for (let i = 0; i < TOTAL_CELLS * 2; i++) {
+                    const currentNum = Math.floor(i / 2) + 1;
                     const entry = document.createElement("div");
                     entry.className = "entry";
                     entry.setAttribute("data-id", i);
+                    if (i % 2 === 0) {
+                        entry.innerHTML = `
+                        <div class="entry-header">
+                            <div>圖片上傳</div>
+                            <div class="entry-number">${currentNum}</div>
+                        </div>
+                        <div class="entry-img-container">
+                            <img src="https://via.placeholder.com/300?text=Upload+Image" alt="上傳圖片" id="preview-${i}">
+                        </div>
+                        <div class="entry-form">
+                            <input type="file" accept="image/*" id="file-${i}" style="display: none;">
+                            <label for="file-${i}">選擇圖片</label>
+                            <div class="input-container">
+                                <div class="input-label">標題</div>
+                                <input type="text" id="title-${i}" maxlength="${MAX_TITLE_LENGTH}" placeholder="請輸入圖片標題">
+                                <div class="character-count" id="title-${i}-count">0/${MAX_TITLE_LENGTH}</div>
+                            </div>
+                        </div>`;
 
-                    const entryHeader = document.createElement("div");
-                    entryHeader.className = "entry-header";
+                        entry.querySelector(`#file-${i}`).addEventListener("change", handleFileUpload);
+                    } else {
+                        entry.innerHTML = `
+                        <div class="entry-header">
+                            <div>內容敘述</div>
+                            <div class="entry-number">${currentNum}</div>
+                        </div>
+                        <div class="input-container">
+                            <div class="input-label">地點</div>
+                            <textarea id="location-${i}" maxlength="20" placeholder="請輸入地點"></textarea>
+                            <div class="character-count" id="location-${i}-count">0/20</div>
+                        </div>
+                        <div class="input-container">
+                            <div class="input-label">景點/特色介紹</div>
+                            <textarea id="loca-desc-${i}" maxlength="${MAX_DESC_LENGTH}" placeholder="請輸入景點敘述"></textarea>
+                            <div class="character-count" id="loca-desc-${i}-count">0/${MAX_DESC_LENGTH}</div>
+                        </div>
+                        <div class="input-container">
+                            <div class="input-label">題目敘述</div>
+                            <textarea id="topic-desc-${i}" maxlength="${MAX_DESC_LENGTH}" placeholder="請輸入題目敘述"></textarea>
+                            <div class="character-count" id="topic-desc-${i}-count">0/${MAX_DESC_LENGTH}</div>
+                        </div>
+                        
+                        <div class="input-container">
+                            <div class="input-label">獎勵點數分配</div>
+                            <textarea id="reward-desc-${i}" maxlength="${4}" placeholder="請輸入數字"></textarea>
+                            <div class="character-count" id="topic-desc-${i}-count">0/${4}</div>
+                        </div>
 
-                    const entryTitle = document.createElement("div");
-                    entryTitle.textContent = `賓果項目`;
-
-                    const entryNumber = document.createElement("div");
-                    entryNumber.className = "entry-number";
-                    entryNumber.textContent = i + 1;
-
-                    entryHeader.appendChild(entryTitle);
-                    entryHeader.appendChild(entryNumber);
-
-                    const imgContainer = document.createElement("div");
-                    imgContainer.className = "entry-img-container";
-
-                    const img = document.createElement("img");
-                    img.src = "https://via.placeholder.com/300?text=Upload+Image";
-                    img.alt = "上傳圖片";
-                    img.id = `preview-${i}`;
-
-                    imgContainer.appendChild(img);
-
-                    const entryForm = document.createElement("div");
-                    entryForm.className = "entry-form";
-
-                    const fileInput = document.createElement("input");
-                    fileInput.type = "file";
-                    fileInput.accept = "image/*";
-                    fileInput.id = `file-${i}`;
-                    fileInput.style.display = "none";
-
-                    const fileLabel = document.createElement("label");
-                    fileLabel.htmlFor = `file-${i}`;
-                    fileLabel.textContent = "選擇圖片";
-
-                    const nameContainer = document.createElement("div");
-                    nameContainer.className = "input-container";
-
-                    const nameLabel = document.createElement("div");
-                    nameLabel.className = "input-label";
-                    nameLabel.textContent = "題目標題";
-
-                    const nameInput = document.createElement("input");
-                    nameInput.type = "text";
-                    nameInput.placeholder = "請輸入題目標題";
-                    nameInput.maxLength = MAX_TITLE_LENGTH;
-                    nameInput.id = `title-${i}`;
-
-                    const titleCount = document.createElement("div");
-                    titleCount.className = "character-count";
-                    titleCount.id = `title-count-${i}`;
-                    titleCount.textContent = `0/${MAX_TITLE_LENGTH}`;
-
-                    nameContainer.appendChild(nameLabel);
-                    nameContainer.appendChild(nameInput);
-                    nameContainer.appendChild(titleCount);
-
-                    const textContainer = document.createElement("div");
-                    textContainer.className = "input-container";
-
-                    const textLabel = document.createElement("div");
-                    textLabel.className = "input-label";
-                    textLabel.textContent = "題目敘述";
-
-                    const textInput = document.createElement("textarea");
-                    textInput.placeholder = "請輸入題目敘述";
-                    textInput.maxLength = MAX_DESC_LENGTH;
-                    textInput.id = `desc-${i}`;
-
-                    const descCount = document.createElement("div");
-                    descCount.className = "character-count";
-                    descCount.id = `desc-count-${i}`;
-                    descCount.textContent = `0/${MAX_DESC_LENGTH}`;
-
-                    textContainer.appendChild(textLabel);
-                    textContainer.appendChild(textInput);
-                    textContainer.appendChild(descCount);
-
-                    entryForm.appendChild(fileLabel);
-                    entryForm.appendChild(fileInput);
-                    entryForm.appendChild(nameContainer);
-                    entryForm.appendChild(textContainer);
-
-                    entry.appendChild(entryHeader);
-                    entry.appendChild(imgContainer);
-                    entry.appendChild(entryForm);
-
+                        <div class="input-container">
+                            <div class="input-label">答案</div>
+                            <textarea id="answer-desc-${i}" maxlength="${1}" placeholder="請輸入選項代號，例如A"></textarea>
+                            <div class="character-count" id="topic-desc-${i}-count">0/${1}</div>
+                        </div>
+                            
+                        <div class="entry-control-buttons" >
+                            <button class="control-button">上傳</button>
+                            <button class="control-button secondary">刪除</button>
+                        </div >`;
+                    }
                     uploadArea.appendChild(entry);
-
-                    // File upload event
-                    fileInput.addEventListener("change", (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                                img.src = event.target.result;
-
-                                const entry = e.target.closest('.entry');
-                                const id = entry.getAttribute('data-id');
-                                const targetCell = document.querySelector(`.cell[data-id="${id}"]`);
-
-                                let cellImg = targetCell.querySelector('img');
-                                if (!cellImg) {
-                                    cellImg = document.createElement('img');
-                                    targetCell.innerHTML = '';
-                                    targetCell.appendChild(cellImg);
-
-                                    // Add overlay for title
-                                    const titleOverlay = document.createElement('div');
-                                    titleOverlay.className = 'title-overlay';
-                                    targetCell.appendChild(titleOverlay);
-                                }
-
-                                cellImg.src = event.target.result;
-                                targetCell.classList.add('filled');
-
-                                // Update the title overlay
-                                const titleOverlay = targetCell.querySelector('.title-overlay');
-                                const titleInput = document.querySelector(`#title-${id}`);
-                                if (titleOverlay && titleInput) {
-                                    titleOverlay.textContent = titleInput.value || '未命名';
-                                }
-
-                                showNotification('圖片上傳成功！');
-                            };
-                            reader.readAsDataURL(file);
-                        }
+                    const inputs = entry.querySelectorAll('input[type="text"], textarea');
+                    inputs.forEach(input => {
+                        input.addEventListener('input', handleInputCount);
                     });
 
-                    // Character count for title
-                    nameInput.addEventListener('input', (e) => {
-                        const count = e.target.value.length;
-                        const countElement = document.getElementById(`title-count-${i}`);
-                        countElement.textContent = `${count}/${MAX_TITLE_LENGTH}`;
+                }
+                uploadArea.addEventListener('click', function (e) {
+                    const button = e.target.closest('button');
+                    if (!button) return;
 
-                        // Update the title overlay in the cell
-                        const cell = document.querySelector(`.cell[data-id="${i}"]`);
-                        const titleOverlay = cell.querySelector('.title-overlay');
-                        if (titleOverlay) {
-                            titleOverlay.textContent = e.target.value || '未命名';
-                        }
-                    });
+                    if (button.textContent.includes('上傳')) {
+                        handleUpload(button);
+                    } else if (button.textContent.includes('刪除')) {
+                        handleDelete(button);
+                    }
+                });
+            }
 
-                    // Character count for description
-                    textInput.addEventListener('input', (e) => {
-                        const count = e.target.value.length;
-                        const countElement = document.getElementById(`desc-count-${i}`);
-                        countElement.textContent = `${count}/${MAX_DESC_LENGTH}`;
-                    });
+            function handleInputCount(e) {
+                const input = e.target;
+                const count = input.value.length;
+                const maxLength = input.maxLength;
+                const countDisplay = document.getElementById(`${input.id}-count`);
+                if (countDisplay) {
+                    countDisplay.textContent = `${count}/${maxLength}`;
+                }
+                if (input.id.startsWith('title-')) {
+                    const id = input.closest('.entry').getAttribute('data-id');
+                    const cell = document.querySelector(`.cell[data-id="${id}"]`);
+                    const titleOverlay = cell?.querySelector('.title-overlay');
+                    if (titleOverlay) {
+                        titleOverlay.textContent = input.value || '未命名';
+                    }
                 }
             }
 
-            // Show notification
-            function showNotification(message, isError = false) {
-                notification.textContent = message;
-                notification.className = isError ? 'notification error show' : 'notification show';
+            // 後端要的東西 應該需要再修改
+            // upload one for button in entry(上傳區)
+            function handleUpload(button) {
+                const entry = button.closest('.entry');
+                const dataId = parseInt(entry.getAttribute('data-id'));
+                const id = Math.floor(dataId / 2);
 
+                const imageEntry = document.querySelector(`.entry[data-id="${id * 2}"]`);
+                const textEntry = document.querySelector(`.entry[data-id="${id * 2 + 1}"]`);
+
+                const titleInput = imageEntry.querySelector('input[id^="title-"]');
+                const locationInput = textEntry.querySelector('textarea[id^="location-"]');
+                const locaDescInput = textEntry.querySelector('textarea[id^="loca-desc-"]');
+                const topicDescInput = textEntry.querySelector('textarea[id^="topic-desc-"]');
+                const answerInput = textEntry.querySelector('textarea[id^="answer-desc-"]');
+                const rewardInput = textEntry.querySelector('textarea[id^="reward-desc-"]');
+                const fileInput = imageEntry.querySelector('input[type="file"]');
+                const cell = document.querySelector(`.cell[data-id="${id}"]`);
+
+                const title = titleInput?.value.trim();
+                const location = locationInput?.value.trim();
+                const locaDesc = locaDescInput?.value.trim();
+                const topicDesc = topicDescInput?.value.trim();
+                const reward = rewardInput?.value.trim();
+                const answer = answerInput?.value.trim();
+                const file = fileInput?.files[0];
+
+                if (!title || !location || !locaDesc || !topicDesc || !file) {
+                    alert('請填寫所有欄位並選擇圖片！');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const imgSrc = e.target.result;
+
+                    // 更新 cell 圖片與標題
+                    cell.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = imgSrc;
+                    cell.appendChild(img);
+
+                    const titleOverlay = document.createElement('div');
+                    titleOverlay.className = 'title-overlay';
+                    titleOverlay.textContent = title;
+                    cell.appendChild(titleOverlay);
+
+                    cell.classList.add('filled');
+
+                    showNotification('施工中');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // upload all
+            function handleFileUpload(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    const entry = e.target.closest('.entry');
+                    const id = Math.floor(entry.getAttribute('data-id') / 2);
+
+
+                    reader.onload = (event) => {
+                        const img = entry.querySelector('img');
+                        img.src = event.target.result;
+                        const targetCell = document.querySelector(`.cell[data-id="${id}"]`);
+                        let cellImg = targetCell.querySelector('img');
+                        if (!cellImg) {
+                            cellImg = document.createElement('img');
+                            targetCell.innerHTML = '';
+                            targetCell.appendChild(cellImg);
+                            const titleOverlay = document.createElement('div');
+                            titleOverlay.className = 'title-overlay';
+                            targetCell.appendChild(titleOverlay);
+                        }
+                        cellImg.src = event.target.result;
+                        targetCell.classList.add('filled');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            // delete one for button in entry (上傳區)
+            function handleDelete(button) {
+
+                const confirmed = confirm('確定要刪除這個項目嗎？');
+                if (!confirmed) {
+                    return;
+                }
+
+                const entry = button.closest('.entry');
+                const dataId = parseInt(entry.getAttribute('data-id'));
+                const id = Math.floor(dataId / 2);
+
+                const imageEntry = document.querySelector(`.entry[data-id="${id * 2}"]`);
+                const textEntry = document.querySelector(`.entry[data-id="${id * 2 + 1}"]`);
+                const cell = document.querySelector(`.cell[data-id="${id}"]`);
+
+                // 清除 cell
+                if (cell) {
+                    cell.innerHTML = '<div class="upload-icon">+</div>';
+                    cell.classList.remove('filled');
+                }
+
+                // 清空所有輸入欄位
+                const inputs = [...imageEntry.querySelectorAll('input[type="text"]'), ...textEntry.querySelectorAll('textarea')];
+                inputs.forEach(input => input.value = '');
+                inputs.forEach(input => {
+                    const count = document.getElementById(`${input.id}-count`);
+                    if (count) count.textContent = `0/${input.maxLength}`;
+                });
+
+                // 清除圖片
+                const previewImg = imageEntry.querySelector('img');
+                if (previewImg) previewImg.src = 'https://via.placeholder.com/300?text=Upload+Image';
+                // 重設 input[type="file"] 的值，確保可以重新選檔
+                const fileInput = imageEntry.querySelector('input[type="file"]');
+                if (fileInput) fileInput.value = '';
+
+                showNotification('已刪除項目');
+
+            }
+            // 在 DOMContentLoaded 事件處理程序內部添加此函數
+            function showNotification(message, isError = false) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.classList.toggle('error', isError);
+                notification.classList.add('show');
+
+                // 3秒後自動隱藏通知
                 setTimeout(() => {
-                    notification.className = notification.className.replace('show', '');
+                    notification.classList.remove('show');
                 }, 3000);
             }
-
-            // Reset form
-            function resetForm() {
-                if (confirm('確定要重置所有內容嗎？此操作無法撤銷。')) {
-                    initializeGrid();
-                    initializeUploadArea();
-                    showNotification('所有內容已重置');
-                }
-            }
-
-            // Download bingo card (mock function)
-            function downloadBingoCard() {
-                // In a real implementation, this would generate an image of the bingo card
-                showNotification('上傳中...');
-            }
-
-            // Event listeners
-            overlay.addEventListener('click', () => {
-                displayArea.style.display = 'none';
-                overlay.style.display = 'none';
-            });
 
             closeDisplay.addEventListener('click', () => {
                 displayArea.style.display = 'none';
                 overlay.style.display = 'none';
             });
-
-            closeInstructions.addEventListener('click', () => {
-                instructions.style.display = 'none';
+            overlay.addEventListener('click', () => {
+                displayArea.style.display = 'none';
+                overlay.style.display = 'none';
             });
+            closeInstructions.addEventListener('click', () => instructions.style.display = 'none');
+            resetButton.addEventListener('click', () => {
+                if (confirm('確定要重置所有內容嗎？')) {
+                    initializeGrid();
+                    initializeUploadArea();
 
-
-            resetButton.addEventListener('click', resetForm);
-            downloadButton.addEventListener('click', async () => {
-                const entries = document.querySelectorAll('.entry');
-                const founderId = 1; // ⚠️ TODO: 改為實際登入使用者的 ID
-
-                for (const entry of entries) {
-                    const id = entry.getAttribute('data-id');
-                    const title = entry.querySelector(`input[type="text"]`).value;
-                    const desc = entry.querySelector('textarea').value;
-                    const fileInput = entry.querySelector('input[type="file"]');
-                    const file = fileInput.files[0];
-
-                    if (!title || !desc || !file) {
-                        showNotification(`第 ${parseInt(id) + 1} 項未填寫完整`, true);
-                        return;
-                    }
-
-                    const formData = new FormData();
-                    formData.append('title', title);
-                    formData.append('desc', desc);
-                    formData.append('file', file);
-                    formData.append('founderId', founderId);
-
-                    try {
-                        const response = await fetch('http://localhost:3000/upload-article', {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        const result = await response.json();
-                        if (!response.ok) throw new Error(result.message || '發生錯誤');
-
-                        showNotification(`第 ${parseInt(id) + 1} 項上傳成功 ✅`);
-                    } catch (error) {
-                        showNotification(`第 ${parseInt(id) + 1} 上傳失敗 ❌`, true);
-                        console.error('Upload Error:', error);
-                    }
                 }
             });
-            // Initialize
+            downloadButton.addEventListener('click', () => alert('施工中...'));
+
             initializeGrid();
             initializeUploadArea();
+
+            // 新增 Bingo 標題輸入區塊
+            const bingoTitleContainer = document.createElement("div");
+            bingoTitleContainer.className = "bingo-title-container";
+            bingoTitleContainer.style.display = "flex";
+            bingoTitleContainer.style.gap = "10px";
+            bingoTitleContainer.style.alignItems = "center";
+
+            bingoTitleContainer.innerHTML = `
+                <input type="text" id="bingoTitle" maxlength="20" placeholder="輸入 Bingo 標題">
+                <button class="control-button" id="uploadBingoTitle">上傳標題</button>
+                <div class="character-count" id="bingoTitle-count">0/20</div>
+            `;
+
+            // 插入到左側 .left-container 的最上方
+            const leftContainer = document.querySelector('.left-container');
+            leftContainer.insertBefore(bingoTitleContainer, leftContainer.firstChild);
+
+            // 動態計算字數
+            const bingoTitleInput = document.getElementById('bingoTitle');
+            bingoTitleInput.addEventListener('input', () => {
+                const count = bingoTitleInput.value.length;
+                document.getElementById('bingoTitle-count').textContent = `${count}/20`;
+            });
+
+            // 顯示區塊（顯示在賓果卡上方）
+            const titleDisplay = document.createElement('div');
+            titleDisplay.id = 'bingoTitleDisplay';
+            titleDisplay.style.textAlign = 'center';
+            titleDisplay.style.fontWeight = 'bold';
+            titleDisplay.style.color = 'var(--secondary-color)';
+            titleDisplay.style.marginBottom = '10px';
+            titleDisplay.style.fontSize = '20px';
+            leftContainer.insertBefore(titleDisplay, leftContainer.children[1]);
+
+            // 點擊按鈕後更新標題顯示 後端需要連接資料庫
+            document.getElementById('uploadBingoTitle').addEventListener('click', () => {
+                const title = bingoTitleInput.value.trim();
+                if (!title) {
+                    alert('請輸入 Bingo 標題');
+                    return;
+                }
+                titleDisplay.textContent = title;
+                showNotification('施工中');
+            });
+
         });
     </script>
+
+
+
 </body>
 
 </html>
