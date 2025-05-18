@@ -722,6 +722,8 @@
             const resetButton = document.getElementById("resetButton");
             const downloadButton = document.getElementById("downloadButton");
 
+            const articleImageMap = new Map(); // key = index, value = base64 string
+
              // 新增 Bingo 標題輸入區塊
             const bingoTitleContainer = document.createElement("div");
             bingoTitleContainer.className = "bingo-title-container";
@@ -769,6 +771,12 @@
             //如果有編輯的 Bingo ID，則載入該 Bingo 的資料
             if (editingBingoId) {
                 loadBingoForEdit(editingBingoId);
+                downloadButton.textContent = "儲存";
+                downloadButton.removeEventListener('click', handleUploadAll);
+                downloadButton.addEventListener('click', () => updateUploadAll(editingBingoId));
+            }else{
+                //實作downloadButton，一次上傳所有資料
+                downloadButton.addEventListener('click', handleUploadAll);
             }
 
              closeDisplay.addEventListener('click', () => {
@@ -788,8 +796,7 @@
                 }
             });
 
-            //實作downloadButton，一次上傳所有資料
-            downloadButton.addEventListener('click', handleUploadAll);
+            
 
             initializeGrid();
             initializeUploadArea();
@@ -1161,17 +1168,6 @@
                 });
             }
 
-            // 點擊按鈕後更新標題顯示 後端需要連接資料庫
-            document.getElementById('uploadBingoTitle').addEventListener('click', () => {
-                const title = bingoTitleInput.value.trim();
-                if (!title) {
-                    alert('請輸入 Bingo 標題');
-                    return;
-                }
-                titleDisplay.textContent = title;
-                showNotification('施工中');
-            });
-
             //載入編輯頁面
             async function loadBingoForEdit(bingoId) {
                 const token = localStorage.getItem("token");
@@ -1207,6 +1203,9 @@
                     // 圖片
                     const img = imgEntry.querySelector('img');
                     img.src = `data:image/jpeg;base64,${article.imageBase64}`;
+                    // 將原始 base64 存入快取 map
+                    articleImageMap.set(i, `data:image/jpeg;base64,${article.imageBase64}`);
+
 
                     // 標題
                     imgEntry.querySelector('input[id^="title-"]').value = article.name;
@@ -1233,6 +1232,99 @@
                 } catch (err) {
                     console.error(err);
                     alert("讀取失敗：" + err.message);
+                }
+            }
+        
+            // 更新上傳資料
+            async function updateUploadAll(bingoId) {
+                const token = localStorage.getItem("token");
+                const userId = localStorage.getItem("userId");
+
+                if (!token || !userId) {
+                    alert("請先登入！");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const bingoTitle = document.getElementById("bingoTitle").value.trim();
+                if (!bingoTitle) {
+                    alert("請輸入 Bingo 標題！");
+                    return;
+                }
+
+                const articles = [];
+
+                for (let i = 0; i < TOTAL_CELLS; i++) {
+                    const imgEntry = document.querySelector(`.entry[data-id="${i * 2}"]`);
+                    const textEntry = document.querySelector(`.entry[data-id="${i * 2 + 1}"]`);
+
+                    const titleInput = imgEntry.querySelector('input[id^="title-"]');
+                    const fileInput = imgEntry.querySelector('input[type="file"]');
+                    const file = fileInput?.files[0];
+
+                    const locaDesc = textEntry.querySelector('textarea[id^="loca-desc-"]').value.trim();
+                    const topicDesc = textEntry.querySelector('textarea[id^="topic-desc-"]').value.trim();
+                    const answer = textEntry.querySelector('textarea[id^="answer-desc-"]').value.trim();
+
+                    if (!titleInput.value.trim() || !locaDesc || !topicDesc || !answer) {
+                        alert(`第 ${i + 1} 格資料不完整，請檢查。`);
+                        return;
+                    }
+
+                    let imageBase64 = '';
+                    if (file) {
+                        imageBase64 = await readFileAsBase64(file);
+                    } else {
+                        const existingBase64 = articleImageMap.get(i);
+                        if (!existingBase64) {
+                            alert(`第 ${i + 1} 張圖片缺失，請重新上傳`);
+                            return;
+                        }
+                        imageBase64 = `__EXISTING__:${existingBase64}`;
+                    }
+
+
+                    articles.push({
+                        name: titleInput.value.trim(),
+                        depiction: locaDesc,
+                        question: topicDesc,
+                        answer: answer,
+                        imageBase64: imageBase64
+                    });
+                }
+
+                const body = {
+                    owner: parseInt(userId),
+                    title: bingoTitle,
+                    region: document.getElementById("bingoRegion").value.trim() || "未指定",
+                    reward: parseInt(document.getElementById("bingoReward").value.trim()) || 0,
+                    passlimit: parseInt(document.getElementById("bingoPasslimit").value.trim()) || 0,
+                    articles
+                };
+
+                try {
+                    const res = await fetch(`http://localhost:3000/bingo/full/${bingoId}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify(body)
+                    });
+
+                    const result = await res.json();
+                    if (res.ok) {
+                        showNotification("儲存成功 ✅");
+                        setTimeout(() => {
+                            window.location.href = "creator_dashboard.html";
+                        }, 1000);
+                    } else {
+                        throw new Error(result.error || "儲存失敗");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("儲存失敗：" + err.message);
+                    showNotification("儲存失敗", true);
                 }
             }
         });
