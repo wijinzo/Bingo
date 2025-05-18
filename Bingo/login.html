@@ -98,6 +98,10 @@
       const result = await response.json();
 
       if (response.ok) {
+        //儲存 token 和 userId 到 localStorage
+        localStorage.setItem("token", result.token);
+        localStorage.setItem("userId", result.id.toString());
+
         alert("登入成功！");
         location.href = "home.html";
       } else {

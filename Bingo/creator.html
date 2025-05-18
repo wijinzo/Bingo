@@ -699,6 +699,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search); 
+            const editingBingoId = urlParams.get("id"); //根據網址參數讀取 Bingo ID
+
             const GRID_SIZE = 3;
             const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
             const MAX_TITLE_LENGTH = 50;
@@ -718,6 +721,78 @@
             const showInstructionsButton = document.getElementById("showInstructionsButton");
             const resetButton = document.getElementById("resetButton");
             const downloadButton = document.getElementById("downloadButton");
+
+             // 新增 Bingo 標題輸入區塊
+            const bingoTitleContainer = document.createElement("div");
+            bingoTitleContainer.className = "bingo-title-container";
+            bingoTitleContainer.style.display = "flex";
+            bingoTitleContainer.style.gap = "10px";
+            bingoTitleContainer.style.alignItems = "center";
+
+            bingoTitleContainer.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="bingoTitle" maxlength="20" placeholder="輸入 Bingo 標題">
+                        <button class="control-button" id="uploadBingoTitle">上傳標題</button>
+                        <div class="character-count" id="bingoTitle-count">0/20</div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="bingoRegion" maxlength="100" placeholder="region">
+                        <input type="number" id="bingoReward" placeholder="reward">
+                        <input type="number" id="bingoPasslimit" placeholder="passlimit">
+                    </div>
+                </div>
+            `;
+
+            // 插入到左側 .left-container 的最上方
+            const leftContainer = document.querySelector('.left-container');
+            leftContainer.insertBefore(bingoTitleContainer, leftContainer.firstChild);
+
+            // 動態計算字數
+            const bingoTitleInput = document.getElementById('bingoTitle');
+            bingoTitleInput.addEventListener('input', () => {
+                const count = bingoTitleInput.value.length;
+                document.getElementById('bingoTitle-count').textContent = `${count}/20`;
+            });
+
+            // 顯示區塊（顯示在賓果卡上方）
+            const titleDisplay = document.createElement('div');
+            titleDisplay.id = 'bingoTitleDisplay';
+            titleDisplay.style.textAlign = 'center';
+            titleDisplay.style.fontWeight = 'bold';
+            titleDisplay.style.color = 'var(--secondary-color)';
+            titleDisplay.style.marginBottom = '10px';
+            titleDisplay.style.fontSize = '20px';
+            leftContainer.insertBefore(titleDisplay, leftContainer.children[1]);
+
+            //如果有編輯的 Bingo ID，則載入該 Bingo 的資料
+            if (editingBingoId) {
+                loadBingoForEdit(editingBingoId);
+            }
+
+             closeDisplay.addEventListener('click', () => {
+                displayArea.style.display = 'none';
+                overlay.style.display = 'none';
+            });
+            overlay.addEventListener('click', () => {
+                displayArea.style.display = 'none';
+                overlay.style.display = 'none';
+            });
+            closeInstructions.addEventListener('click', () => instructions.style.display = 'none');
+            resetButton.addEventListener('click', () => {
+                if (confirm('確定要重置所有內容嗎？')) {
+                    initializeGrid();
+                    initializeUploadArea();
+
+                }
+            });
+
+            //實作downloadButton，一次上傳所有資料
+            downloadButton.addEventListener('click', handleUploadAll);
+
+            initializeGrid();
+            initializeUploadArea();
 
             function initializeGrid() {
 
@@ -780,16 +855,11 @@
                         </div>`;
 
                         entry.querySelector(`#file-${i}`).addEventListener("change", handleFileUpload);
-                    } else {
+                    } else { 
                         entry.innerHTML = `
                         <div class="entry-header">
                             <div>內容敘述</div>
                             <div class="entry-number">${currentNum}</div>
-                        </div>
-                        <div class="input-container">
-                            <div class="input-label">地點</div>
-                            <textarea id="location-${i}" maxlength="20" placeholder="請輸入地點"></textarea>
-                            <div class="character-count" id="location-${i}-count">0/20</div>
                         </div>
                         <div class="input-container">
                             <div class="input-label">景點/特色介紹</div>
@@ -803,12 +873,6 @@
                         </div>
                         
                         <div class="input-container">
-                            <div class="input-label">獎勵點數分配</div>
-                            <textarea id="reward-desc-${i}" maxlength="${4}" placeholder="請輸入數字"></textarea>
-                            <div class="character-count" id="topic-desc-${i}-count">0/${4}</div>
-                        </div>
-
-                        <div class="input-container">
                             <div class="input-label">答案</div>
                             <textarea id="answer-desc-${i}" maxlength="${1}" placeholder="請輸入選項代號，例如A"></textarea>
                             <div class="character-count" id="topic-desc-${i}-count">0/${1}</div>
@@ -818,7 +882,7 @@
                             <button class="control-button">上傳</button>
                             <button class="control-button secondary">刪除</button>
                         </div >`;
-                    }
+                    }// reward&location 欄位移除，改為整體 Bingo 設定
                     uploadArea.appendChild(entry);
                     const inputs = entry.querySelectorAll('input[type="text"], textarea');
                     inputs.forEach(input => {
@@ -838,6 +902,7 @@
                 });
             }
 
+            //即時字數顯示器 + 資料同步器
             function handleInputCount(e) {
                 const input = e.target;
                 const count = input.value.length;
@@ -856,9 +921,8 @@
                 }
             }
 
-            // 後端要的東西 應該需要再修改
-            // upload one for button in entry(上傳區)
-            function handleUpload(button) {
+            // upload one for button in entry(上傳區)(刪除)
+            /*function handleUpload(button) {
                 const entry = button.closest('.entry');
                 const dataId = parseInt(entry.getAttribute('data-id'));
                 const id = Math.floor(dataId / 2);
@@ -908,12 +972,21 @@
                     showNotification('施工中');
                 };
                 reader.readAsDataURL(file);
-            }
+            }*/
 
-            // upload all
+            // 上傳圖片至網站(限制2MB)&預覽圖片
             function handleFileUpload(e) {
                 const file = e.target.files[0];
                 if (file) {
+                    const maxSizeMB = 2; // 可自行調整大小限制（這裡是 2MB）
+                    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+
+                    if (file.size > maxSizeBytes) {
+                        alert(`檔案大小超過 ${maxSizeMB}MB，請選擇較小的檔案。`);
+                         e.target.value = ''; // 清空 file input
+                        return;
+                    }
+
                     const reader = new FileReader();
                     const entry = e.target.closest('.entry');
                     const id = Math.floor(entry.getAttribute('data-id') / 2);
@@ -938,6 +1011,7 @@
                     reader.readAsDataURL(file);
                 }
             }
+
             // delete one for button in entry (上傳區)
             function handleDelete(button) {
 
@@ -978,6 +1052,7 @@
                 showNotification('已刪除項目');
 
             }
+            
             // 在 DOMContentLoaded 事件處理程序內部添加此函數
             function showNotification(message, isError = false) {
                 const notification = document.getElementById('notification');
@@ -991,60 +1066,100 @@
                 }, 3000);
             }
 
-            closeDisplay.addEventListener('click', () => {
-                displayArea.style.display = 'none';
-                overlay.style.display = 'none';
-            });
-            overlay.addEventListener('click', () => {
-                displayArea.style.display = 'none';
-                overlay.style.display = 'none';
-            });
-            closeInstructions.addEventListener('click', () => instructions.style.display = 'none');
-            resetButton.addEventListener('click', () => {
-                if (confirm('確定要重置所有內容嗎？')) {
-                    initializeGrid();
-                    initializeUploadArea();
+            // 上傳所有資料到後端
+            async function handleUploadAll() {
+                const token = localStorage.getItem("token");
+                const userId = localStorage.getItem("userId");
 
+                if (!token || !userId) {
+                    alert("請先登入！");
+                    window.location.href = "login.html";
+                    return;
                 }
-            });
-            downloadButton.addEventListener('click', () => alert('施工中...'));
 
-            initializeGrid();
-            initializeUploadArea();
+                const bingoTitle = document.getElementById("bingoTitle").value.trim();
+                if (!bingoTitle) {
+                    alert("請輸入 Bingo 標題！");
+                    return;
+                }
 
-            // 新增 Bingo 標題輸入區塊
-            const bingoTitleContainer = document.createElement("div");
-            bingoTitleContainer.className = "bingo-title-container";
-            bingoTitleContainer.style.display = "flex";
-            bingoTitleContainer.style.gap = "10px";
-            bingoTitleContainer.style.alignItems = "center";
+                const articles = [];
 
-            bingoTitleContainer.innerHTML = `
-                <input type="text" id="bingoTitle" maxlength="20" placeholder="輸入 Bingo 標題">
-                <button class="control-button" id="uploadBingoTitle">上傳標題</button>
-                <div class="character-count" id="bingoTitle-count">0/20</div>
-            `;
+                for (let i = 0; i < TOTAL_CELLS; i++) {
+                    const imgEntry = document.querySelector(`.entry[data-id="${i * 2}"]`);
+                    const textEntry = document.querySelector(`.entry[data-id="${i * 2 + 1}"]`);
 
-            // 插入到左側 .left-container 的最上方
-            const leftContainer = document.querySelector('.left-container');
-            leftContainer.insertBefore(bingoTitleContainer, leftContainer.firstChild);
+                    const titleInput = imgEntry.querySelector('input[id^="title-"]');
+                    const fileInput = imgEntry.querySelector('input[type="file"]');
+                    const file = fileInput?.files[0];
 
-            // 動態計算字數
-            const bingoTitleInput = document.getElementById('bingoTitle');
-            bingoTitleInput.addEventListener('input', () => {
-                const count = bingoTitleInput.value.length;
-                document.getElementById('bingoTitle-count').textContent = `${count}/20`;
-            });
+                    const locaDesc = textEntry.querySelector('textarea[id^="loca-desc-"]').value.trim();
+                    const topicDesc = textEntry.querySelector('textarea[id^="topic-desc-"]').value.trim();
+                    const answer = textEntry.querySelector('textarea[id^="answer-desc-"]').value.trim();
 
-            // 顯示區塊（顯示在賓果卡上方）
-            const titleDisplay = document.createElement('div');
-            titleDisplay.id = 'bingoTitleDisplay';
-            titleDisplay.style.textAlign = 'center';
-            titleDisplay.style.fontWeight = 'bold';
-            titleDisplay.style.color = 'var(--secondary-color)';
-            titleDisplay.style.marginBottom = '10px';
-            titleDisplay.style.fontSize = '20px';
-            leftContainer.insertBefore(titleDisplay, leftContainer.children[1]);
+                    if (!file || !titleInput.value.trim() || !locaDesc || !topicDesc || !answer) {
+                    alert(`第 ${i + 1} 格資料不完整，請檢查。`);
+                    return;
+                    }
+
+                    const base64 = await readFileAsBase64(file);
+
+                    articles.push({
+                    name: titleInput.value.trim(),
+                    depiction: locaDesc,
+                    question: topicDesc,
+                    answer: answer,
+                    imageBase64: base64
+                    });
+                }
+
+                const body = {
+                    owner: parseInt(userId),
+                    title: bingoTitle,
+                    region: document.getElementById("bingoRegion").value.trim() || "未指定",
+                    reward: parseInt(document.getElementById("bingoReward").value.trim()) || 0,
+                    passlimit: parseInt(document.getElementById("bingoPasslimit").value.trim()) || 0,
+                    articles
+                };
+
+                try {
+                    const res = await fetch("http://localhost:3000/bingo/full", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
+                        body: JSON.stringify(body)
+                    });
+
+                    const result = await res.json();
+                    if (res.ok) {
+                        alert("Bingo 建立成功！ID: " + result.bingoId);
+                        showNotification("建立成功 🎉");
+
+                        // ✅ 自動導回 dashboard 頁面
+                        setTimeout(() => {
+                            window.location.href = "creator_dashboard.html";
+                        }, 1000); // 延遲 1 秒讓通知顯示
+                    } else {
+                        throw new Error(result.error || "建立失敗");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("上傳失敗：" + err.message);
+                    showNotification("建立失敗", true);
+                }
+            }
+
+            // 將圖片檔案轉成 base64
+            function readFileAsBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result); // 回傳 base64 字串
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
 
             // 點擊按鈕後更新標題顯示 後端需要連接資料庫
             document.getElementById('uploadBingoTitle').addEventListener('click', () => {
@@ -1057,6 +1172,69 @@
                 showNotification('施工中');
             });
 
+            //載入編輯頁面
+            async function loadBingoForEdit(bingoId) {
+                const token = localStorage.getItem("token");
+
+                try {
+                    const res = await fetch(`http://localhost:3000/bingo/${bingoId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                    });
+
+                    const result = await res.json();
+
+                    if (!res.ok) throw new Error(result.error || "無法載入 Bingo");
+
+                    const bingo = result.bingo;
+                    const articles = result.articles;
+
+                    // 設定 Bingo 標題、region、reward、passlimit
+                    document.getElementById("bingoReward").value = bingo.reward;
+                    document.getElementById("bingoPasslimit").value = bingo.passlimit;
+                    document.getElementById("bingoRegion").value = bingo.region;
+                    document.getElementById("bingoTitle").value = bingo.title;
+                    document.getElementById("bingoTitleDisplay").textContent = bingo.title;
+
+                    // 載入格子與上傳區內容
+                    for (let i = 0; i < articles.length; i++) {
+                    const article = articles[i];
+                    const imgEntry = document.querySelector(`.entry[data-id="${i * 2}"]`);
+                    const textEntry = document.querySelector(`.entry[data-id="${i * 2 + 1}"]`);
+                    const cell = document.querySelector(`.cell[data-id="${i}"]`);
+
+                    // 圖片
+                    const img = imgEntry.querySelector('img');
+                    img.src = `data:image/jpeg;base64,${article.imageBase64}`;
+
+                    // 標題
+                    imgEntry.querySelector('input[id^="title-"]').value = article.name;
+
+                    // 文字欄位
+                    textEntry.querySelector('textarea[id^="loca-desc-"]').value = article.depiction;
+                    textEntry.querySelector('textarea[id^="topic-desc-"]').value = article.question;
+                    textEntry.querySelector('textarea[id^="answer-desc-"]').value = article.answer;
+
+                    // 同步更新格子
+                    cell.innerHTML = '';
+                    const cellImg = document.createElement('img');
+                    cellImg.src = `data:image/jpeg;base64,${article.imageBase64}`;
+                    const overlay = document.createElement('div');
+                    overlay.className = 'title-overlay';
+                    overlay.textContent = article.name;
+
+                    cell.appendChild(cellImg);
+                    cell.appendChild(overlay);
+                    cell.classList.add('filled');
+                    }
+
+                    showNotification('成功載入 Bingo ✅');
+                } catch (err) {
+                    console.error(err);
+                    alert("讀取失敗：" + err.message);
+                }
+            }
         });
     </script>
 
