@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Creator Dashboard - Bingo 管理</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
     <style>
         :root {
             --primary-color: #2dd4bf;
@@ -57,22 +55,6 @@
         .header h1 {
             font-size: 24px;
             margin: 0;
-        }
-
-        .return-button {
-            color: white;
-            font-size: 2.2rem;
-            display: flex;
-            align-items: center;
-            transition: color 0.2s, transform 0.2s;
-            margin-right: 10px;
-            text-decoration: none;
-        }
-
-        .return-button:hover {
-            color: var(--accent-color);
-            transform: scale(1.15) rotate(-8deg);
-            text-decoration: none;
         }
 
         .user-info {
@@ -490,10 +472,10 @@
 <body>
     <div class="header">
         <div class="header-content">
-            <h1> Bingo 管理面板</h1>
+            <h1>📋 Bingo 管理面板</h1>
             <div class="user-info">
-
-                <span>創作者</span>
+                <div class="user-avatar">👨‍💼</div>
+                <span id="userNameDisplay">創作者</span>
             </div>
         </div>
     </div>
@@ -503,19 +485,19 @@
         <div class="dashboard-stats">
             <div class="stat-card">
                 <div class="stat-number" id="totalBingos">0</div>
-                <div class="stat-label">總共 Bingo</div> <!-- 資料庫可以統計，如果抓到bingo應該就會自動計算-->
+                <div class="stat-label">總共 Bingo</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="publishedBingos">0</div>
-                <div class="stat-label">已發布</div> <!--可以做到嗎?-->
+                <div class="stat-label">已發布</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="draftBingos">0</div>
-                <div class="stat-label">草稿</div> <!--可以做到嗎?-->
+                <div class="stat-label">草稿</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="totalPlayers">0</div>
-                <div class="stat-label">參與玩家</div> <!--可以做到嗎?-->
+                <div class="stat-label">參與玩家</div>
             </div>
         </div>
 
@@ -530,10 +512,20 @@
                     <span>➕</span>
                     新增 Bingo
                 </a>
+                <button class="control-button secondary" id="bulkEditBtn">
+                    <span>📝</span>
+                    批量編輯
+                </button>
+                <button class="control-button secondary" id="exportBtn">
+                    <span>📤</span>
+                    匯出資料
+                </button>
                 <button class="control-button warning" id="bulkArchiveBtn">
+                    <span>📦</span>
                     批量封存
                 </button>
                 <button class="control-button error" id="bulkDeleteBtn">
+                    <span>🗑️</span>
                     批量刪除
                 </button>
             </div>
@@ -609,63 +601,11 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            //
-            //模擬 Bingo 資料，後端需要參數:id,title,status,createdAt,players,(completedCells,images這兩個要抓比較麻煩，可以看看之後需不需要)
-            //
-            const mockBingos = [
-                {
-                    id: 1,
-                    title: "台北景點大探索",
-                    status: "published",
-                    createdAt: "2024-01-15",
-                    players: 125,
-                    completedCells: 7,
-                    images: [
-                        "/api/placeholder/100/100",
-                        "/api/placeholder/100/100",
-                        "/api/placeholder/100/100",
-                        "/api/placeholder/100/100",
-                        "/api/placeholder/100/100",
-                        null, null, null, null
-                    ]
-                },
-                {
-                    id: 2,
-                    title: "台南美食巡禮",
-                    status: "draft",
-                    createdAt: "2024-01-20",
-                    players: 0,
-                    completedCells: 5,
-                    images: [
-                        "/api/placeholder/100/100",
-                        "/api/placeholder/100/100",
-                        "/api/placeholder/100/100",
-                        null, null, null, null, null, null
-                    ]
-                },
-                {
-                    id: 3,
-                    title: "花蓮自然體驗",
-                    status: "published",
-                    createdAt: "2024-01-10",
-                    players: 89,
-                    completedCells: 9,
-                    images: Array(9).fill("/api/placeholder/100/100")
-                },
-                {
-                    id: 4,
-                    title: "高雄港都風情",
-                    status: "archived",
-                    createdAt: "2023-12-01",
-                    players: 200,
-                    completedCells: 9,
-                    images: Array(9).fill("/api/placeholder/100/100")
-                }
-            ];
+            loadUserName(); // ← 獲取使用者名稱
 
-            let currentBingos = [...mockBingos];
-            let selectedBingos = new Set();
-
+            let bingoList = []; // ← 所有 Bingo 清單
+            let filteredBingoList = []; // ← 篩選後的 Bingo 清單
+            
             // DOM 元素
             const bingoGrid = document.getElementById('bingoGrid');
             const emptyState = document.getElementById('emptyState');
@@ -674,7 +614,7 @@
             const sortFilter = document.getElementById('sortFilter');
             const resetFiltersBtn = document.getElementById('resetFiltersBtn');
             const notification = document.getElementById('notification');
-
+            
             // 統計元素
             const totalBingos = document.getElementById('totalBingos');
             const publishedBingos = document.getElementById('publishedBingos');
@@ -682,24 +622,73 @@
             const totalPlayers = document.getElementById('totalPlayers');
 
             // 模態框元素
-            const deleteModal = document.getElementById('deleteModal');
             const bulkActionModal = document.getElementById('bulkActionModal');
 
             // 初始化
-            updateStats();
-            renderBingos();
+            fetchBingoList();       // ← 從後端取得 Bingo 清單
+
+            // 獲取使用者名稱
+            async function loadUserName() {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    alert("請先登入！");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                try {
+                    const res = await fetch("http://localhost:3000/user/info", {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                    const nameSpan = document.getElementById("userNameDisplay");
+                    nameSpan.textContent = `${result.name}`;
+                    } else {
+                    throw new Error(result.error || "無法取得使用者資料");
+                    }
+                } catch (err) {
+                    console.error("獲取使用者名稱失敗", err);
+                    alert("取得使用者資訊失敗");
+                }
+            }
+
+            // 取得 Bingo 清單
+            function fetchBingoList() {
+                const userId = localStorage.getItem("userId");
+                const token = localStorage.getItem("token");
+
+                fetch(`http://localhost:3000/bingo?owner=${userId}`, {
+                    headers: {
+                    Authorization: `Bearer ${token}`
+                    }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                    bingoList = data;
+                    filteredBingoList = [...bingoList];
+                    updateStats();      // 更新統計卡片
+                    renderBingos();     // 渲染 Bingo 卡片
+                    })
+                    .catch(err => {
+                    console.error("載入 Bingo 清單失敗：", err);
+                    showNotification("載入 Bingo 清單失敗", "error");
+                    });
+            }
 
             // 更新統計
             function updateStats() {
-                totalBingos.textContent = mockBingos.length;
-                publishedBingos.textContent = mockBingos.filter(b => b.status === 'published').length;
-                draftBingos.textContent = mockBingos.filter(b => b.status === 'draft').length;
-                totalPlayers.textContent = mockBingos.reduce((sum, b) => sum + b.players, 0);
+                totalBingos.textContent = bingoList.length;
+                publishedBingos.textContent = bingoList.filter(b => b.status === 'published').length;
+                draftBingos.textContent = bingoList.filter(b => b.status === 'draft').length;
+                totalPlayers.textContent = bingoList.reduce((sum, b) => sum + b.players, 0);
             }
 
             // 渲染 Bingo 卡片
             function renderBingos() {
-                if (currentBingos.length === 0) {
+                if (filteredBingoList.length === 0) {
                     bingoGrid.style.display = 'none';
                     emptyState.style.display = 'block';
                     return;
@@ -708,7 +697,7 @@
                 bingoGrid.style.display = 'grid';
                 emptyState.style.display = 'none';
 
-                bingoGrid.innerHTML = currentBingos.map(bingo => `
+                bingoGrid.innerHTML = filteredBingoList.map(bingo => `
                     <div class="bingo-card" data-id="${bingo.id}">
                         <div class="bingo-preview">
                             ${bingo.images.map(img => `
@@ -730,12 +719,12 @@
                             <div class="bingo-actions">
                                 <a href="creator.html?id=${bingo.id}" class="action-button action-edit">編輯</a>
                                 <button class="action-button action-view" onclick="viewBingo(${bingo.id})">檢視</button>
-                                ${bingo.status === 'draft'
-                        ? '<button class="action-button action-publish" onclick="publishBingo(' + bingo.id + ')">發布</button>'
-                        : bingo.status === 'published'
-                            ? '<button class="action-button action-archive" onclick="archiveBingo(' + bingo.id + ')">封存</button>'
-                            : '<button class="action-button action-publish" onclick="unarchiveBingo(' + bingo.id + ')">取消封存</button>'
-                    }
+                                ${bingo.status === 'draft' 
+                                    ? '<button class="action-button action-publish" onclick="publishBingo(' + bingo.id + ')">發布</button>'
+                                    : bingo.status === 'published'
+                                    ? '<button class="action-button action-archive" onclick="archiveBingo(' + bingo.id + ')">封存</button>'
+                                    : '<button class="action-button action-publish" onclick="unarchiveBingo(' + bingo.id + ')">取消封存</button>'
+                                }
                                 <button class="action-button action-delete" onclick="deleteBingo(${bingo.id})">刪除</button>
                             </div>
                         </div>
@@ -743,50 +732,7 @@
                 `).join('');
             }
 
-            
-            // 顯示通知
-            function showNotification(message, type = 'success') {
-                notification.textContent = message;
-                notification.className = `notification ${type} show`;
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 3000);
-            }
-            
-            // 篩選功能
-            function filterBingos() {
-                const searchTerm = searchInput.value.toLowerCase();
-                const statusValue = statusFilter.value;
-                
-                currentBingos = mockBingos.filter(bingo => {
-                    const matchSearch = bingo.title.toLowerCase().includes(searchTerm);
-                    const matchStatus = !statusValue || bingo.status === statusValue;
-                    return matchSearch && matchStatus;
-                });
-                
-                // 排序
-                const sortValue = sortFilter.value;
-                currentBingos.sort((a, b) => {
-                    switch (sortValue) {
-                        case 'newest':
-                            return new Date(b.createdAt) - new Date(a.createdAt);
-                            case 'oldest':
-                            return new Date(a.createdAt) - new Date(b.createdAt);
-                        case 'title':
-                            return a.title.localeCompare(b.title);
-                            case 'players':
-                                return b.players - a.players;
-                                default:
-                            return 0;
-                    }
-                });
-                
-                renderBingos();
-            }
-            
-            //後端
-
-            // 獲取狀態文字，沒有和後端綁再一起，之後可能要確定成功才轉狀態
+            // 獲取狀態文字
             function getStatusText(status) {
                 const statusMap = {
                     'draft': '草稿',
@@ -795,8 +741,49 @@
                 };
                 return statusMap[status] || status;
             }
-            // 事件監聽器
-            searchInput.addEventListener('input', filterBingos);
+
+            // 顯示通知
+            function showNotification(message, type = 'success') {
+                notification.textContent = message;
+                notification.className = `notification ${type} show`;
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            // 篩選功能(暫時不使用)
+            /*function filterBingos() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const statusValue = statusFilter.value;
+                
+                filteredBingoList = bingoList.filter(bingo => {
+                    const matchSearch = bingo.title.toLowerCase().includes(searchTerm);
+                    const matchStatus = !statusValue || bingo.status === statusValue;
+                    return matchSearch && matchStatus;
+                });
+
+                // 排序
+                const sortValue = sortFilter.value;
+                filteredBingoList.sort((a, b) => {
+                    switch (sortValue) {
+                        case 'newest':
+                            return new Date(b.createdAt) - new Date(a.createdAt);
+                        case 'oldest':
+                            return new Date(a.createdAt) - new Date(b.createdAt);
+                        case 'title':
+                            return a.title.localeCompare(b.title);
+                        case 'players':
+                            return b.players - a.players;
+                        default:
+                            return 0;
+                    }
+                });
+
+                renderBingos();
+            }*/
+
+            //Filter事件監聽器(暫時不使用)
+            /*searchInput.addEventListener('input', filterBingos);
             statusFilter.addEventListener('change', filterBingos);
             sortFilter.addEventListener('change', filterBingos);
             resetFiltersBtn.addEventListener('click', () => {
@@ -804,25 +791,61 @@
                 statusFilter.value = '';
                 sortFilter.value = 'newest';
                 filterBingos();
-            });
+            });*/
 
-            // 全域函數
+            // deleteBingo全域函數
             window.deleteBingo = (id) => {
-                document.getElementById('deleteModal').style.display = 'block';
-                document.getElementById('confirmDeleteBtn').onclick = () => {
-                    const index = mockBingos.findIndex(b => b.id === id);
-                    if (index > -1) {
-                        mockBingos.splice(index, 1);
-                        updateStats();
-                        filterBingos();
-                        showNotification('Bingo 已刪除');
-                    }
-                    document.getElementById('deleteModal').style.display = 'none';
-                };
+                const token = localStorage.getItem("token");
+                const deleteModal = document.getElementById('deleteModal');
+                const confirmBtn = document.getElementById('confirmDeleteBtn');
+                const cancelBtn = document.getElementById('cancelDeleteBtn');
+
+                deleteModal.style.display = 'block';
+
+                // 重新綁定避免多次觸發
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+                const newCancelBtn = cancelBtn.cloneNode(true);
+                cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+                newConfirmBtn.addEventListener("click", async () => {
+                try {
+                    const res = await fetch(`http://localhost:3000/bingo/${id}`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    const result = await res.json();
+                    if (!res.ok) throw new Error(result.error || "刪除失敗");
+
+                    // 🧹 從本地資料移除
+                    const index = bingoList.findIndex(b => b.id === id);
+                    if (index > -1) bingoList.splice(index, 1);
+
+                    const fIndex = filteredBingoList.findIndex(b => b.id === id);
+                    if (fIndex > -1) filteredBingoList.splice(fIndex, 1);
+
+                    updateStats();
+                    renderBingos();
+                    showNotification("Bingo 已刪除 ✅");
+
+                }catch (err) {
+                    console.error("刪除錯誤：", err);
+                    showNotification("刪除失敗 ❌", "error");
+                } finally {
+                    deleteModal.style.display = 'none';
+                }
+                });
+                newCancelBtn.addEventListener("click", () => {
+                    deleteModal.style.display = 'none';
+                });
             };
 
             window.publishBingo = (id) => {
-                const bingo = mockBingos.find(b => b.id === id);
+                const bingo = bingoList.find(b => b.id === id);
                 if (bingo) {
                     bingo.status = 'published';
                     filterBingos();
@@ -832,7 +855,7 @@
             };
 
             window.archiveBingo = (id) => {
-                const bingo = mockBingos.find(b => b.id === id);
+                const bingo = bingoList.find(b => b.id === id);
                 if (bingo) {
                     bingo.status = 'archived';
                     filterBingos();
@@ -842,7 +865,7 @@
             };
 
             window.unarchiveBingo = (id) => {
-                const bingo = mockBingos.find(b => b.id === id);
+                const bingo = bingoList.find(b => b.id === id);
                 if (bingo) {
                     bingo.status = 'published';
                     filterBingos();
@@ -865,6 +888,13 @@
             });
 
             // 批量操作
+            document.getElementById('bulkEditBtn').addEventListener('click', () => {
+                showNotification('批量編輯功能開發中...', 'warning');
+            });
+
+            document.getElementById('exportBtn').addEventListener('click', () => {
+                showNotification('匯出功能開發中...', 'warning');
+            });
 
             document.getElementById('bulkArchiveBtn').addEventListener('click', () => {
                 showNotification('批量封存功能開發中...', 'warning');
