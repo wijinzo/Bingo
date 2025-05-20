@@ -886,7 +886,6 @@
                         </div>
                             
                         <div class="entry-control-buttons" >
-                            <button class="control-button">上傳</button>
                             <button class="control-button secondary">刪除</button>
                         </div >`;
                     }// reward&location 欄位移除，改為整體 Bingo 設定
@@ -901,9 +900,7 @@
                     const button = e.target.closest('button');
                     if (!button) return;
 
-                    if (button.textContent.includes('上傳')) {
-                        handleUpload(button);
-                    } else if (button.textContent.includes('刪除')) {
+                    if (button.textContent.includes('刪除')) {
                         handleDelete(button);
                     }
                 });
@@ -1052,9 +1049,13 @@
                 // 清除圖片
                 const previewImg = imageEntry.querySelector('img');
                 if (previewImg) previewImg.src = 'https://via.placeholder.com/300?text=Upload+Image';
+
                 // 重設 input[type="file"] 的值，確保可以重新選檔
                 const fileInput = imageEntry.querySelector('input[type="file"]');
                 if (fileInput) fileInput.value = '';
+
+                //清空 Base64 快取
+                articleImageMap.delete(id);
 
                 showNotification('已刪除項目');
 
@@ -1104,19 +1105,24 @@
                     const topicDesc = textEntry.querySelector('textarea[id^="topic-desc-"]').value.trim();
                     const answer = textEntry.querySelector('textarea[id^="answer-desc-"]').value.trim();
 
-                    if (!file || !titleInput.value.trim() || !locaDesc || !topicDesc || !answer) {
+                    if (!titleInput.value.trim() || !locaDesc || !topicDesc || !answer) {
                     alert(`第 ${i + 1} 格資料不完整，請檢查。`);
                     return;
                     }
 
-                    const base64 = await readFileAsBase64(file);
+                    let imageBase64 = '';
+                    if (file) {
+                        imageBase64 = await readFileAsBase64(file);
+                    } else {
+                        imageBase64 = null; // ✅ 圖片為 null 表示未上傳
+                    }
 
                     articles.push({
                     name: titleInput.value.trim(),
                     depiction: locaDesc,
                     question: topicDesc,
                     answer: answer,
-                    imageBase64: base64
+                    imageBase64: imageBase64
                     });
                 }
 
@@ -1235,7 +1241,7 @@
                 }
             }
         
-            // 更新上傳資料
+            //更新上傳資料
             async function updateUploadAll(bingoId) {
                 const token = localStorage.getItem("token");
                 const userId = localStorage.getItem("userId");
@@ -1276,11 +1282,9 @@
                         imageBase64 = await readFileAsBase64(file);
                     } else {
                         const existingBase64 = articleImageMap.get(i);
-                        if (!existingBase64) {
-                            alert(`第 ${i + 1} 張圖片缺失，請重新上傳`);
-                            return;
+                        if (existingBase64) {
+                            imageBase64 = `__EXISTING__:${existingBase64}`;
                         }
-                        imageBase64 = `__EXISTING__:${existingBase64}`;
                     }
 
 

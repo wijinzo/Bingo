@@ -475,7 +475,7 @@
             <h1>📋 Bingo 管理面板</h1>
             <div class="user-info">
                 <div class="user-avatar">👨‍💼</div>
-                <span>創作者</span>
+                <span id="userNameDisplay">創作者</span>
             </div>
         </div>
     </div>
@@ -601,14 +601,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            
-            // 檢查登入狀態
-            const userId = localStorage.getItem('userId'); // 已登入使用者 ID
-            const token = localStorage.getItem('token'); // 已登入使用者 token
-            if (!userId || !token) {
-                alert("請先登入");
-                window.location.href = "login.html";
-            }
+            loadUserName(); // ← 獲取使用者名稱
 
             let bingoList = []; // ← 所有 Bingo 清單
             let filteredBingoList = []; // ← 篩選後的 Bingo 清單
@@ -629,11 +622,38 @@
             const totalPlayers = document.getElementById('totalPlayers');
 
             // 模態框元素
-            const deleteModal = document.getElementById('deleteModal');
             const bulkActionModal = document.getElementById('bulkActionModal');
 
             // 初始化
             fetchBingoList();       // ← 從後端取得 Bingo 清單
+
+            // 獲取使用者名稱
+            async function loadUserName() {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    alert("請先登入！");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                try {
+                    const res = await fetch("http://localhost:3000/user/info", {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                    const nameSpan = document.getElementById("userNameDisplay");
+                    nameSpan.textContent = `${result.name}`;
+                    } else {
+                    throw new Error(result.error || "無法取得使用者資料");
+                    }
+                } catch (err) {
+                    console.error("獲取使用者名稱失敗", err);
+                    alert("取得使用者資訊失敗");
+                }
+            }
 
             // 取得 Bingo 清單
             function fetchBingoList() {
@@ -773,19 +793,55 @@
                 filterBingos();
             });*/
 
-            // 全域函數
+            // deleteBingo全域函數
             window.deleteBingo = (id) => {
-                document.getElementById('deleteModal').style.display = 'block';
-                document.getElementById('confirmDeleteBtn').onclick = () => {
+                const token = localStorage.getItem("token");
+                const deleteModal = document.getElementById('deleteModal');
+                const confirmBtn = document.getElementById('confirmDeleteBtn');
+                const cancelBtn = document.getElementById('cancelDeleteBtn');
+
+                deleteModal.style.display = 'block';
+
+                // 重新綁定避免多次觸發
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+                const newCancelBtn = cancelBtn.cloneNode(true);
+                cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+                newConfirmBtn.addEventListener("click", async () => {
+                try {
+                    const res = await fetch(`http://localhost:3000/bingo/${id}`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    const result = await res.json();
+                    if (!res.ok) throw new Error(result.error || "刪除失敗");
+
+                    // 🧹 從本地資料移除
                     const index = bingoList.findIndex(b => b.id === id);
-                    if (index > -1) {
-                        bingoList.splice(index, 1);
-                        updateStats();
-                        filterBingos();
-                        showNotification('Bingo 已刪除');
-                    }
-                    document.getElementById('deleteModal').style.display = 'none';
-                };
+                    if (index > -1) bingoList.splice(index, 1);
+
+                    const fIndex = filteredBingoList.findIndex(b => b.id === id);
+                    if (fIndex > -1) filteredBingoList.splice(fIndex, 1);
+
+                    updateStats();
+                    renderBingos();
+                    showNotification("Bingo 已刪除 ✅");
+
+                }catch (err) {
+                    console.error("刪除錯誤：", err);
+                    showNotification("刪除失敗 ❌", "error");
+                } finally {
+                    deleteModal.style.display = 'none';
+                }
+                });
+                newCancelBtn.addEventListener("click", () => {
+                    deleteModal.style.display = 'none';
+                });
             };
 
             window.publishBingo = (id) => {
