@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Creator</title>
+    <style>
+        :root {
+            --primary-color: #2dd4bf;
+            --secondary-color: #0f766e;
+            --background-color: #f8fafc;
+            --text-color: #334155;
+            --accent-color: #f59e0b;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --border-radius: 12px;
+            --cell-size: clamp(60px, 5vw, 80px);
+            --grid-gap: 4px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            background-color: #f0f2f5;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+            gap: 20px;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px;
+            text-align: center;
+            z-index: 999;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .instructions {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            max-width: 80%;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+
+        .instructions-icon {
+            font-size: 24px;
+            color: var(--primary-color);
+            flex-shrink: 0;
+        }
+
+        .instructions-text {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .instructions-text p {
+            margin-bottom: 5px;
+            text-align: left
+        }
+
+        .close-instructions {
+            cursor: pointer;
+            padding: 5px;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+        }
+
+        .close-instructions:hover {
+            color: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .control-button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(45, 212, 191, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(45, 212, 191, 0.4);
+        }
+
+        .control-button.secondary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .main-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1600px;
+            margin-top: 70px;
+        }
+
+        .left-container {
+            flex: 1;
+            max-width: 400px;
+            min-width: 350px;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            overflow-y: auto;
+            height: calc(100vh - 100px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: sticky;
+            top: 90px;
+            flex-direction: column;
+        }
+
+        .bingo-title-container button#uploadBingoTitle {
+            padding: 10px 16px;
+            font-size: 14px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: bold;
+            border: none;
+            box-shadow: 0 4px 10px rgba(45, 212, 191, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+
+
+        .grid-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: white;
+            border-radius: var(--border-radius);
+            border: 4px solid var(--secondary-color);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+
+        .grid-wrapper {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 8px;
+            padding: 15px;
+            width: 100%;
+            height: 100%;
+            /*margin-top: 2%;*/
+            margin-bottom: 2%;
+        }
+
+        .cell {
+            background: rgba(243, 244, 246, 0.8);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+
+        .cell.filled {
+            border: 2px solid var(--primary-color);
+        }
+
+        .cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cell .upload-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #9ca3af;
+        }
+
+        .cell .title-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 5px;
+            font-size: 10px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cell:hover .title-overlay {
+            opacity: 1;
+        }
+
+        .right-container {
+            flex: 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            max-width: 1200px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow-y: auto;
+            height: calc(100vh - 100px);
+        }
+
+        .entry {
+            height: 100%;
+            background: white;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .entry-control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 15px;
+            align-items: stretch;
+
+        }
+
+        .entry-control-buttons .control-button .entry-control-buttons .control-button.secondary {
+            width: 100%;
+
+        }
+
+        .entry:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .entry-header {
+            background: var(--background-color);
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .entry-number {
+            background: var(--primary-color);
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .entry-img-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .entry img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .entry img:hover {
+            transform: scale(1.05);
+        }
+
+        .entry-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .input-container {
+            flex: 1 1 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            position: relative;
+            margin-top: 10px;
+        }
+
+        .input-label {
+            position: absolute;
+            left: 12px;
+            top: -8px;
+            background: white;
+            padding: 0 5px;
+            font-size: 12px;
+            color: var(--secondary-color);
+            z-index: 1;
+        }
+
+        .input[type="text"] {
+            text-align: left;
+            padding: 8px;
+            line-height: 1;
+            /* 正常的行高 */
+            vertical-align: baseline;
+            /* 恢復基線對齊 */
+        }
+
+        .entry input[type="text"],
+        .entry textarea {
+            flex: 1 1 0;
+            min-height: 0;
+            resize: none;
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            transition: all 0.3s ease;
+            resize: none;
+            height: 80px;
+        }
+
+        .entry input[type="text"]:hover,
+        .entry textarea:hover,
+        .entry input[type="text"]:focus,
+        .entry textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+        }
+
+        .entry input[type="file"] {
+            display: none;
+        }
+
+        .entry label {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            width: 100%;
+            text-align: center;
+        }
+
+        .entry label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(45, 212, 191, 0.3);
+        }
+
+        .character-count {
+            font-size: 12px;
+            color: #9ca3af;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .display-area {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            /* 啟用垂直滾動條 */
+            overflow-x: hidden;
+            /* 隱藏水平滾動條 */
+        }
+
+        .display-area img {
+            max-width: 100%;
+            max-height: 70vh;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .display-area .text-content {
+            font-size: 16px;
+            color: #333;
+            max-height: 20vh;
+            overflow-y: auto;
+            padding: 10px;
+            background: var(--background-color);
+            border-radius: 8px;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .display-area .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .display-area .close-button:hover {
+            background: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(3px);
+            z-index: 999;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--success-color);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification.error {
+            background: var(--error-color);
+        }
+
+        .display-area .text-content h2 {
+            font-size: 1.25em;
+            color: var(--secondary-color);
+            margin: 8px 0 4px 0;
+        }
+
+        .display-area .text-content strong {
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+
+        .display-area .text-content p {
+            margin: 4px 0;
+            /* 減少段落間距 */
+        }
+
+        .bingo-title-container {
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .bingo-title-container input {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            background: white;
+            transition: all 0.3s ease;
+            color: var(--secondary-color);
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .bingo-title-container input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+        }
+
+        .bingo-title-container .character-count {
+            text-align: right;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 1200px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            .left-container {
+                max-width: 100%;
+                position: relative;
+                top: 0;
+                height: auto;
+                min-height: 400px;
+            }
+
+            .right-container {
+                max-width: 100%;
+                height: auto;
+            }
+
+            .grid-container {
+                aspect-ratio: 1/1;
+                max-width: 500px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .instructions {
+                max-width: 95%;
+            }
+
+            .grid-wrapper {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(8, 1fr);
+            }
+
+            .entry {
+                padding: 10px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .control-button {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+
+
+</head>
+
+<body>
+    <div class="header">
+        <h1>Bingo 製作</h1>
+    </div>
+
+
+    <div class="instructions" id="instructions">
+        <div class="instructions-icon">ℹ️</div>
+        <div class="instructions-text">
+            <align="left">
+                <p>使用說明：</p>
+                <p>1. 點選右側區域的「選擇圖片」來上傳題目圖片</p>
+                <p>2. 輸入題目標題（最多50字）</p>
+                <p>3. 輸入題目敘述（最多100字）</p>
+                <p>4. 上傳後的圖片會自動顯示在左側的賓果卡片中</p>
+                <p>5. 點選賓果卡片的格子可以檢視大圖和詳細介紹</p>
+                </align>
+        </div>
+        <div class="close-instructions" id="close-instructions">✕</div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-container">
+            <div class="grid-container">
+                <div class="grid-wrapper" id="grid-wrapper">
+                    <!-- Grid cells will be generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="right-container" id="uploadArea">
+            <!-- Upload entries will be generated by JavaScript -->
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="control-button secondary" id="resetButton">重置</button>
+        <button class="control-button" id="downloadButton">上傳</button>
+        <button class="control-button secondary" id="showInstructionsButton">顯示說明</button>
+    </div>
+
+    <div class="notification" id="notification">操作成功！</div>
+    <div class="overlay" id="overlay"></div>
+    <div class="display-area" id="displayArea">
+        <div class="close-button" id="closeDisplay">✕</div>
+        <img id="displayImg" src="" alt="賓果項目">
+        <div class="text-content" id="displayTitle"></div>
+        <div class="text-content" id="displayText"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search); 
+            const editingBingoId = urlParams.get("id"); //根據網址參數讀取 Bingo ID
+
+            const GRID_SIZE = 3;
+            const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
+            const MAX_TITLE_LENGTH = 50;
+            const MAX_DESC_LENGTH = 100;
+
+            const gridWrapper = document.getElementById("grid-wrapper");
+            const uploadArea = document.getElementById("uploadArea");
+            const overlay = document.getElementById("overlay");
+            const displayArea = document.getElementById("displayArea");
+            const displayImg = document.getElementById("displayImg");
+            const displayTitle = document.getElementById("displayTitle");
+            const displayText = document.getElementById("displayText");
+            const closeDisplay = document.getElementById("closeDisplay");
+            const notification = document.getElementById("notification");
+            const instructions = document.getElementById("instructions");
+            const closeInstructions = document.getElementById("close-instructions");
+            const showInstructionsButton = document.getElementById("showInstructionsButton");
+            const resetButton = document.getElementById("resetButton");
+            const downloadButton = document.getElementById("downloadButton");
+
+            const articleImageMap = new Map(); // key = index, value = base64 string
+
+             // 新增 Bingo 標題輸入區塊
+            const bingoTitleContainer = document.createElement("div");
+            bingoTitleContainer.className = "bingo-title-container";
+            bingoTitleContainer.style.display = "flex";
+            bingoTitleContainer.style.gap = "10px";
+            bingoTitleContainer.style.alignItems = "center";
+
+            bingoTitleContainer.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="bingoTitle" maxlength="20" placeholder="輸入 Bingo 標題">
+                        <button class="control-button" id="uploadBingoTitle">上傳標題</button>
+                        <div class="character-count" id="bingoTitle-count">0/20</div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="bingoRegion" maxlength="100" placeholder="region">
+                        <input type="number" id="bingoReward" placeholder="reward">
+                        <input type="number" id="bingoPasslimit" placeholder="passlimit">
+                    </div>
+                </div>
+            `;
+
+            // 插入到左側 .left-container 的最上方
+            const leftContainer = document.querySelector('.left-container');
+            leftContainer.insertBefore(bingoTitleContainer, leftContainer.firstChild);
+
+            // 動態計算字數
+            const bingoTitleInput = document.getElementById('bingoTitle');
+            bingoTitleInput.addEventListener('input', () => {
+                const count = bingoTitleInput.value.length;
+                document.getElementById('bingoTitle-count').textContent = `${count}/20`;
+            });
+
+            // 顯示區塊（顯示在賓果卡上方）
+            const titleDisplay = document.createElement('div');
+            titleDisplay.id = 'bingoTitleDisplay';
+            titleDisplay.style.textAlign = 'center';
+            titleDisplay.style.fontWeight = 'bold';
+            titleDisplay.style.color = 'var(--secondary-color)';
+            titleDisplay.style.marginBottom = '10px';
+            titleDisplay.style.fontSize = '20px';
+            leftContainer.insertBefore(titleDisplay, leftContainer.children[1]);
+
+            //如果有編輯的 Bingo ID，則載入該 Bingo 的資料
+            if (editingBingoId) {
+                loadBingoForEdit(editingBingoId);
+                downloadButton.textContent = "儲存";
+                downloadButton.removeEventListener('click', handleUploadAll);
+                downloadButton.addEventListener('click', () => updateUploadAll(editingBingoId));
+            }else{
+                //實作downloadButton，一次上傳所有資料
+                downloadButton.addEventListener('click', handleUploadAll);
+            }
+
+             closeDisplay.addEventListener('click', () => {
+                displayArea.style.display = 'none';
+                overlay.style.display = 'none';
+            });
+            overlay.addEventListener('click', () => {
+                displayArea.style.display = 'none';
+                overlay.style.display = 'none';
+            });
+            closeInstructions.addEventListener('click', () => instructions.style.display = 'none');
+            resetButton.addEventListener('click', () => {
+                if (confirm('確定要重置所有內容嗎？')) {
+                    initializeGrid();
+                    initializeUploadArea();
+
+                }
+            });
+
+            
+
+            initializeGrid();
+            initializeUploadArea();
+
+            function initializeGrid() {
+
+
+
+                gridWrapper.innerHTML = '';
+                for (let i = 0; i < TOTAL_CELLS; i++) {
+                    const cell = document.createElement("div");
+                    cell.className = "cell";
+                    cell.setAttribute("data-id", i);
+                    cell.innerHTML = `<div class="upload-icon">+</div>`;
+                    gridWrapper.appendChild(cell);
+
+                    cell.addEventListener("click", () => {
+                        const cellImg = cell.querySelector('img');
+                        if (cellImg) {
+                            const entry = document.querySelector(`.entry[data-id="${i * 2}"]`);
+                            const descEntry = document.querySelector(`.entry[data-id="${i * 2 + 1}"]`);
+                            if (entry && descEntry) {
+                                const nameInput = entry.querySelector('input[type="text"]');
+                                const locaInput = descEntry.querySelector('textarea[id^="loca-desc-"]');
+                                const textInput = descEntry.querySelector('textarea[id^="topic-desc-"]');
+                                if (nameInput && textInput && locaInput) {
+                                    displayTitle.innerHTML = `<h1><strong>${nameInput.value}</strong></h1>`;
+                                    displayText.innerHTML = `<h2>景點介紹</h2><p>${locaInput.value}</p><h2>題目說明</h2><p>${textInput.value}</p>`;
+                                    displayImg.src = cellImg.src;
+                                    displayArea.style.display = 'block';
+                                    overlay.style.display = 'block';
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            function initializeUploadArea() {
+                uploadArea.innerHTML = '';
+                for (let i = 0; i < TOTAL_CELLS * 2; i++) {
+                    const currentNum = Math.floor(i / 2) + 1;
+                    const entry = document.createElement("div");
+                    entry.className = "entry";
+                    entry.setAttribute("data-id", i);
+                    if (i % 2 === 0) {
+                        entry.innerHTML = `
+                        <div class="entry-header">
+                            <div>圖片上傳</div>
+                            <div class="entry-number">${currentNum}</div>
+                        </div>
+                        <div class="entry-img-container">
+                            <img src="https://via.placeholder.com/300?text=Upload+Image" alt="上傳圖片" id="preview-${i}">
+                        </div>
+                        <div class="entry-form">
+                            <input type="file" accept="image/*" id="file-${i}" style="display: none;">
+                            <label for="file-${i}">選擇圖片</label>
+                            <div class="input-container">
+                                <div class="input-label">標題</div>
+                                <input type="text" id="title-${i}" maxlength="${MAX_TITLE_LENGTH}" placeholder="請輸入圖片標題">
+                                <div class="character-count" id="title-${i}-count">0/${MAX_TITLE_LENGTH}</div>
+                            </div>
+                        </div>`;
+
+                        entry.querySelector(`#file-${i}`).addEventListener("change", handleFileUpload);
+                    } else { 
+                        entry.innerHTML = `
+                        <div class="entry-header">
+                            <div>內容敘述</div>
+                            <div class="entry-number">${currentNum}</div>
+                        </div>
+                        <div class="input-container">
+                            <div class="input-label">景點/特色介紹</div>
+                            <textarea id="loca-desc-${i}" maxlength="${MAX_DESC_LENGTH}" placeholder="請輸入景點敘述"></textarea>
+                            <div class="character-count" id="loca-desc-${i}-count">0/${MAX_DESC_LENGTH}</div>
+                        </div>
+                        <div class="input-container">
+                            <div class="input-label">題目敘述</div>
+                            <textarea id="topic-desc-${i}" maxlength="${MAX_DESC_LENGTH}" placeholder="請輸入題目敘述"></textarea>
+                            <div class="character-count" id="topic-desc-${i}-count">0/${MAX_DESC_LENGTH}</div>
+                        </div>
+                        
+                        <div class="input-container">
+                            <div class="input-label">答案</div>
+                            <textarea id="answer-desc-${i}" maxlength="${1}" placeholder="請輸入選項代號，例如A"></textarea>
+                            <div class="character-count" id="topic-desc-${i}-count">0/${1}</div>
+                        </div>
+                            
+                        <div class="entry-control-buttons" >
+                            <button class="control-button secondary">刪除</button>
+                        </div >`;
+                    }// reward&location 欄位移除，改為整體 Bingo 設定
+                    uploadArea.appendChild(entry);
+                    const inputs = entry.querySelectorAll('input[type="text"], textarea');
+                    inputs.forEach(input => {
+                        input.addEventListener('input', handleInputCount);
+                    });
+
+                }
+                uploadArea.addEventListener('click', function (e) {
+                    const button = e.target.closest('button');
+                    if (!button) return;
+
+                    if (button.textContent.includes('刪除')) {
+                        handleDelete(button);
+                    }
+                });
+            }
+
+            //即時字數顯示器 + 資料同步器
+            function handleInputCount(e) {
+                const input = e.target;
+                const count = input.value.length;
+                const maxLength = input.maxLength;
+                const countDisplay = document.getElementById(`${input.id}-count`);
+                if (countDisplay) {
+                    countDisplay.textContent = `${count}/${maxLength}`;
+                }
+                if (input.id.startsWith('title-')) {
+                    const id = input.closest('.entry').getAttribute('data-id');
+                    const cell = document.querySelector(`.cell[data-id="${id}"]`);
+                    const titleOverlay = cell?.querySelector('.title-overlay');
+                    if (titleOverlay) {
+                        titleOverlay.textContent = input.value || '未命名';
+                    }
+                }
+            }
+
+            // upload one for button in entry(上傳區)(刪除)
+            /*function handleUpload(button) {
+                const entry = button.closest('.entry');
+                const dataId = parseInt(entry.getAttribute('data-id'));
+                const id = Math.floor(dataId / 2);
+
+                const imageEntry = document.querySelector(`.entry[data-id="${id * 2}"]`);
+                const textEntry = document.querySelector(`.entry[data-id="${id * 2 + 1}"]`);
+
+                const titleInput = imageEntry.querySelector('input[id^="title-"]');
+                const locationInput = textEntry.querySelector('textarea[id^="location-"]');
+                const locaDescInput = textEntry.querySelector('textarea[id^="loca-desc-"]');
+                const topicDescInput = textEntry.querySelector('textarea[id^="topic-desc-"]');
+                const answerInput = textEntry.querySelector('textarea[id^="answer-desc-"]');
+                const rewardInput = textEntry.querySelector('textarea[id^="reward-desc-"]');
+                const fileInput = imageEntry.querySelector('input[type="file"]');
+                const cell = document.querySelector(`.cell[data-id="${id}"]`);
+
+                const title = titleInput?.value.trim();
+                const location = locationInput?.value.trim();
+                const locaDesc = locaDescInput?.value.trim();
+                const topicDesc = topicDescInput?.value.trim();
+                const reward = rewardInput?.value.trim();
+                const answer = answerInput?.value.trim();
+                const file = fileInput?.files[0];
+
+                if (!title || !location || !locaDesc || !topicDesc || !file) {
+                    alert('請填寫所有欄位並選擇圖片！');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const imgSrc = e.target.result;
+
+                    // 更新 cell 圖片與標題
+                    cell.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = imgSrc;
+                    cell.appendChild(img);
+
+                    const titleOverlay = document.createElement('div');
+                    titleOverlay.className = 'title-overlay';
+                    titleOverlay.textContent = title;
+                    cell.appendChild(titleOverlay);
+
+                    cell.classList.add('filled');
+
+                    showNotification('施工中');
+                };
+                reader.readAsDataURL(file);
+            }*/
+
+            // 上傳圖片至網站(限制2MB)&預覽圖片
+            function handleFileUpload(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const maxSizeMB = 2; // 可自行調整大小限制（這裡是 2MB）
+                    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+
+                    if (file.size > maxSizeBytes) {
+                        alert(`檔案大小超過 ${maxSizeMB}MB，請選擇較小的檔案。`);
+                         e.target.value = ''; // 清空 file input
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    const entry = e.target.closest('.entry');
+                    const id = Math.floor(entry.getAttribute('data-id') / 2);
+
+
+                    reader.onload = (event) => {
+                        const img = entry.querySelector('img');
+                        img.src = event.target.result;
+                        const targetCell = document.querySelector(`.cell[data-id="${id}"]`);
+                        let cellImg = targetCell.querySelector('img');
+                        if (!cellImg) {
+                            cellImg = document.createElement('img');
+                            targetCell.innerHTML = '';
+                            targetCell.appendChild(cellImg);
+                            const titleOverlay = document.createElement('div');
+                            titleOverlay.className = 'title-overlay';
+                            targetCell.appendChild(titleOverlay);
+                        }
+                        cellImg.src = event.target.result;
+                        targetCell.classList.add('filled');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            // delete one for button in entry (上傳區)
+            function handleDelete(button) {
+
+                const confirmed = confirm('確定要刪除這個項目嗎？');
+                if (!confirmed) {
+                    return;
+                }
+
+                const entry = button.closest('.entry');
+                const dataId = parseInt(entry.getAttribute('data-id'));
+                const id = Math.floor(dataId / 2);
+
+                const imageEntry = document.querySelector(`.entry[data-id="${id * 2}"]`);
+                const textEntry = document.querySelector(`.entry[data-id="${id * 2 + 1}"]`);
+                const cell = document.querySelector(`.cell[data-id="${id}"]`);
+
+                // 清除 cell
+                if (cell) {
+                    cell.innerHTML = '<div class="upload-icon">+</div>';
+                    cell.classList.remove('filled');
+                }
+
+                // 清空所有輸入欄位
+                const inputs = [...imageEntry.querySelectorAll('input[type="text"]'), ...textEntry.querySelectorAll('textarea')];
+                inputs.forEach(input => input.value = '');
+                inputs.forEach(input => {
+                    const count = document.getElementById(`${input.id}-count`);
+                    if (count) count.textContent = `0/${input.maxLength}`;
+                });
+
+                // 清除圖片
+                const previewImg = imageEntry.querySelector('img');
+                if (previewImg) previewImg.src = 'https://via.placeholder.com/300?text=Upload+Image';
+
+                // 重設 input[type="file"] 的值，確保可以重新選檔
+                const fileInput = imageEntry.querySelector('input[type="file"]');
+                if (fileInput) fileInput.value = '';
+
+                //清空 Base64 快取
+                articleImageMap.delete(id);
+
+                showNotification('已刪除項目');
+
+            }
+            
+            // 在 DOMContentLoaded 事件處理程序內部添加此函數
+            function showNotification(message, isError = false) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.classList.toggle('error', isError);
+                notification.classList.add('show');
+
+                // 3秒後自動隱藏通知
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            // 上傳所有資料到後端
+            async function handleUploadAll() {
+                const token = localStorage.getItem("token");
+                const userId = localStorage.getItem("userId");
+
+                if (!token || !userId) {
+                    alert("請先登入！");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const bingoTitle = document.getElementById("bingoTitle").value.trim();
+                if (!bingoTitle) {
+                    alert("請輸入 Bingo 標題！");
+                    return;
+                }
+
+                const articles = [];
+
+                for (let i = 0; i < TOTAL_CELLS; i++) {
+                    const imgEntry = document.querySelector(`.entry[data-id="${i * 2}"]`);
+                    const textEntry = document.querySelector(`.entry[data-id="${i * 2 + 1}"]`);
+
+                    const titleInput = imgEntry.querySelector('input[id^="title-"]');
+                    const fileInput = imgEntry.querySelector('input[type="file"]');
+                    const file = fileInput?.files[0];
+
+                    const locaDesc = textEntry.querySelector('textarea[id^="loca-desc-"]').value.trim();
+                    const topicDesc = textEntry.querySelector('textarea[id^="topic-desc-"]').value.trim();
+                    const answer = textEntry.querySelector('textarea[id^="answer-desc-"]').value.trim();
+
+                    if (!titleInput.value.trim() || !locaDesc || !topicDesc || !answer) {
+                    alert(`第 ${i + 1} 格資料不完整，請檢查。`);
+                    return;
+                    }
+
+                    let imageBase64 = '';
+                    if (file) {
+                        imageBase64 = await readFileAsBase64(file);
+                    } else {
+                        imageBase64 = null; // ✅ 圖片為 null 表示未上傳
+                    }
+
+                    articles.push({
+                    name: titleInput.value.trim(),
+                    depiction: locaDesc,
+                    question: topicDesc,
+                    answer: answer,
+                    imageBase64: imageBase64
+                    });
+                }
+
+                const body = {
+                    owner: parseInt(userId),
+                    title: bingoTitle,
+                    region: document.getElementById("bingoRegion").value.trim() || "未指定",
+                    reward: parseInt(document.getElementById("bingoReward").value.trim()) || 0,
+                    passlimit: parseInt(document.getElementById("bingoPasslimit").value.trim()) || 0,
+                    articles
+                };
+
+                try {
+                    const res = await fetch("http://localhost:3000/bingo/full", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
+                        body: JSON.stringify(body)
+                    });
+
+                    const result = await res.json();
+                    if (res.ok) {
+                        alert("Bingo 建立成功！ID: " + result.bingoId);
+                        showNotification("建立成功 🎉");
+
+                        // ✅ 自動導回 dashboard 頁面
+                        setTimeout(() => {
+                            window.location.href = "creator_dashboard.html";
+                        }, 1000); // 延遲 1 秒讓通知顯示
+                    } else {
+                        throw new Error(result.error || "建立失敗");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("上傳失敗：" + err.message);
+                    showNotification("建立失敗", true);
+                }
+            }
+
+            // 將圖片檔案轉成 base64
+            function readFileAsBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result); // 回傳 base64 字串
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            //載入編輯頁面
+            async function loadBingoForEdit(bingoId) {
+                const token = localStorage.getItem("token");
+
+                try {
+                    const res = await fetch(`http://localhost:3000/bingo/${bingoId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                    });
+
+                    const result = await res.json();
+
+                    if (!res.ok) throw new Error(result.error || "無法載入 Bingo");
+
+                    const bingo = result.bingo;
+                    const articles = result.articles;
+
+                    // 設定 Bingo 標題、region、reward、passlimit
+                    document.getElementById("bingoReward").value = bingo.reward;
+                    document.getElementById("bingoPasslimit").value = bingo.passlimit;
+                    document.getElementById("bingoRegion").value = bingo.region;
+                    document.getElementById("bingoTitle").value = bingo.title;
+                    document.getElementById("bingoTitleDisplay").textContent = bingo.title;
+
+                    // 載入格子與上傳區內容
+                    for (let i = 0; i < articles.length; i++) {
+                    const article = articles[i];
+                    const imgEntry = document.querySelector(`.entry[data-id="${i * 2}"]`);
+                    const textEntry = document.querySelector(`.entry[data-id="${i * 2 + 1}"]`);
+                    const cell = document.querySelector(`.cell[data-id="${i}"]`);
+
+                    // 圖片
+                    const img = imgEntry.querySelector('img');
+                    img.src = `data:image/jpeg;base64,${article.imageBase64}`;
+                    // 將原始 base64 存入快取 map
+                    articleImageMap.set(i, `data:image/jpeg;base64,${article.imageBase64}`);
+
+
+                    // 標題
+                    imgEntry.querySelector('input[id^="title-"]').value = article.name;
+
+                    // 文字欄位
+                    textEntry.querySelector('textarea[id^="loca-desc-"]').value = article.depiction;
+                    textEntry.querySelector('textarea[id^="topic-desc-"]').value = article.question;
+                    textEntry.querySelector('textarea[id^="answer-desc-"]').value = article.answer;
+
+                    // 同步更新格子
+                    cell.innerHTML = '';
+                    const cellImg = document.createElement('img');
+                    cellImg.src = `data:image/jpeg;base64,${article.imageBase64}`;
+                    const overlay = document.createElement('div');
+                    overlay.className = 'title-overlay';
+                    overlay.textContent = article.name;
+
+                    cell.appendChild(cellImg);
+                    cell.appendChild(overlay);
+                    cell.classList.add('filled');
+                    }
+
+                    showNotification('成功載入 Bingo ✅');
+                } catch (err) {
+                    console.error(err);
+                    alert("讀取失敗：" + err.message);
+                }
+            }
+        
+            //更新上傳資料
+            async function updateUploadAll(bingoId) {
+                const token = localStorage.getItem("token");
+                const userId = localStorage.getItem("userId");
+
+                if (!token || !userId) {
+                    alert("請先登入！");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const bingoTitle = document.getElementById("bingoTitle").value.trim();
+                if (!bingoTitle) {
+                    alert("請輸入 Bingo 標題！");
+                    return;
+                }
+
+                const articles = [];
+
+                for (let i = 0; i < TOTAL_CELLS; i++) {
+                    const imgEntry = document.querySelector(`.entry[data-id="${i * 2}"]`);
+                    const textEntry = document.querySelector(`.entry[data-id="${i * 2 + 1}"]`);
+
+                    const titleInput = imgEntry.querySelector('input[id^="title-"]');
+                    const fileInput = imgEntry.querySelector('input[type="file"]');
+                    const file = fileInput?.files[0];
+
+                    const locaDesc = textEntry.querySelector('textarea[id^="loca-desc-"]').value.trim();
+                    const topicDesc = textEntry.querySelector('textarea[id^="topic-desc-"]').value.trim();
+                    const answer = textEntry.querySelector('textarea[id^="answer-desc-"]').value.trim();
+
+                    if (!titleInput.value.trim() || !locaDesc || !topicDesc || !answer) {
+                        alert(`第 ${i + 1} 格資料不完整，請檢查。`);
+                        return;
+                    }
+
+                    let imageBase64 = '';
+                    if (file) {
+                        imageBase64 = await readFileAsBase64(file);
+                    } else {
+                        const existingBase64 = articleImageMap.get(i);
+                        if (existingBase64) {
+                            imageBase64 = `__EXISTING__:${existingBase64}`;
+                        }
+                    }
+
+
+                    articles.push({
+                        name: titleInput.value.trim(),
+                        depiction: locaDesc,
+                        question: topicDesc,
+                        answer: answer,
+                        imageBase64: imageBase64
+                    });
+                }
+
+                const body = {
+                    owner: parseInt(userId),
+                    title: bingoTitle,
+                    region: document.getElementById("bingoRegion").value.trim() || "未指定",
+                    reward: parseInt(document.getElementById("bingoReward").value.trim()) || 0,
+                    passlimit: parseInt(document.getElementById("bingoPasslimit").value.trim()) || 0,
+                    articles
+                };
+
+                try {
+                    const res = await fetch(`http://localhost:3000/bingo/full/${bingoId}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify(body)
+                    });
+
+                    const result = await res.json();
+                    if (res.ok) {
+                        showNotification("儲存成功 ✅");
+                        setTimeout(() => {
+                            window.location.href = "creator_dashboard.html";
+                        }, 1000);
+                    } else {
+                        throw new Error(result.error || "儲存失敗");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("儲存失敗：" + err.message);
+                    showNotification("儲存失敗", true);
+                }
+            }
+        });
+    </script>
+
+
+
+</body>
+
+</html>
