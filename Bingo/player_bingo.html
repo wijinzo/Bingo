@@ -525,128 +525,71 @@
     <div class="notification" id="notification"></div>
 
     <script>
-        // 模擬 Bingo 資料
-        const bingoData = [
-            {
-                id: 1,
-                name: "龍山寺",
-                image: "/api/placeholder/200/200",
-                description: "艋舺龍山寺位於台北市萬華區，是台北市最著名的古蹟之一，創建於清朝乾隆三年（1738年）。以觀音菩薩為主祀，建築精美，雕樑畫棟，是台灣傳統寺廟建築的經典代表。",
-                question: "這座歷史悠久的廟宇是台北最著名的宗教建築之一，以其精美的雕刻和豐富的文化活動聞名。請問這是哪個廟宇？",
-                options: ["A. 龍山寺", "B. 行天宮", "C. 保安宮", "D. 孔廟"],
-                correctAnswer: "A",
-                completed: false
-            },
-            {
-                id: 2,
-                name: "故宮博物院",
-                image: "/api/placeholder/200/200",
-                description: "國立故宮博物院收藏了近70萬件中華文物和藝術品，是世界四大博物館之一。館藏包含了數千年的中國歷史文化精華，從新石器時代到清朝。",
-                question: "這間博物院收藏了世界上最豐富的中華文物，被譽為中華文化的寶庫。請問這是哪間博物院？",
-                options: ["A. 歷史博物館", "B. 故宮博物院", "C. 臺灣博物館", "D. 當代藝術館"],
-                correctAnswer: "B",
-                completed: true
-            },
-            {
-                id: 3,
-                name: "中正紀念堂",
-                image: "/api/placeholder/200/200",
-                description: "中正紀念堂是為紀念中華民國總統蔣中正而興建的建築，白色大理石的主建築搭配藍色琉璃瓦屋頂，具有濃厚的中國宮殿建築風格。",
-                question: "這座宏偉的白色建築以其獨特的中式宮殿設計聞名，每日定時進行的衛兵交接儀式吸引眾多遊客。請問這是？",
-                options: ["A. 總統府", "B. 國父紀念館", "C. 中正紀念堂", "D. 孫中山紀念館"],
-                correctAnswer: "C",
-                completed: false
-            },
-            {
-                id: 4,
-                name: "西門町",
-                image: "/api/placeholder/200/200",
-                description: "西門町是台北的流行文化重鎮，被稱為台北的「原宿」或「澀谷」。這裡聚集了各種流行商店、美食、電影院，是年輕人最喜愛的聚集地。",
-                question: "這個充滿活力的商圈被稱為台北的時尚之都，是年輕人購物和娛樂的首選地點。請問這是？",
-                options: ["A. 士林夜市", "B. 信義商圈", "C. 東區", "D. 西門町"],
-                correctAnswer: "D",
-                completed: true
-            },
-            {
-                id: 5,
-                name: "台北101",
-                image: "/api/placeholder/200/200",
-                description: "台北101曾是世界最高建築，高達508公尺。其設計靈感來自竹子，象徵節節高升。大樓內有購物中心、辦公室和觀景台。",
-                question: "這座摩天大樓曾是世界最高建築，以其竹子造型設計和超高速電梯聞名。請問這是？",
-                options: ["A. 台北101", "B. 新光三越", "C. 遠企中心", "D. 世貿中心"],
-                correctAnswer: "A",
-                completed: false
-            },
-            {
-                id: 6,
-                name: "淡水老街",
-                image: "/api/placeholder/200/200",
-                description: "淡水老街保存了豐富的歷史建築和傳統文化，是體驗台灣傳統風情的好地方。老街上的小吃、工藝品和歷史建築吸引了眾多遊客。",
-                question: "這條充滿歷史氛圍的老街以其傳統建築和道地小吃聞名，是感受台灣古早味的最佳去處。請問這是？",
-                options: ["A. 九份老街", "B. 淡水老街", "C. 鶯歌老街", "D. 三峽老街"],
-                correctAnswer: "B",
-                completed: true
-            },
-            {
-                id: 7,
-                name: "陽明山",
-                image: "/api/placeholder/200/200",
-                description: "陽明山國家公園以溫泉、火山地形和豐富的生態聞名。春天的櫻花、秋天的芒草，四季都有不同的美景。",
-                question: "這個國家公園以其溫泉、火山地形和四季變化的美景著稱，是台北市民休閒踏青的熱門選擇。請問這是？",
-                options: ["A. 陽明山", "B. 汐止山", "C. 小油坑", "D. 七星山"],
-                correctAnswer: "A",
-                completed: false
-            },
-            {
-                id: 8,
-                name: "華西街夜市",
-                image: "/api/placeholder/200/200",
-                description: "華西街夜市是台北歷史最悠久的夜市之一，以其豐富的傳統小吃和獨特的夜市文化聞名。這裡保留了最道地的台灣夜市風情。",
-                question: "這個歷史悠久的夜市以其傳統台灣小吃和熱鬧的夜市文化聞名，是體驗台北庶民生活的絕佳地點。請問這是？",
-                options: ["A. 士林夜市", "B. 饒河街夜市", "C. 華西街夜市", "D. 景美夜市"],
-                correctAnswer: "C",
-                completed: false
-            },
-            {
-                id: 9,
-                name: "國父紀念館",
-                image: "/api/placeholder/200/200",
-                description: "國父紀念館是為紀念中華民國國父孫中山先生而建的綜合性文化設施，具有濃厚的中國傳統建築風格，也是重要的藝文展演場所。",
-                question: "這座具有中國傳統建築風格的紀念館不僅是重要的歷史地標，也是台北重要的藝文展演場所。請問這是？",
-                options: ["A. 中正紀念堂", "B. 國父紀念館", "C. 國立劇院", "D. 中山堂"],
-                correctAnswer: "B",
-                completed: false
-            }
-        ];
+        const urlParams = new URLSearchParams(window.location.search);
+        const bingoId = urlParams.get("id");
 
+        let bingoData = [];
         let currentQuestionIndex = 0;
         let selectedAnswer = null;
-        let gameStats = {
-            completed: 3,
+         let gameStats = {
+            completed: 0,
             total: 9,
-            score: 150,
-            timeRemaining: 330 // 5分30秒
+            score: 0,
+            timeRemaining: 300
         };
 
-        // 初始化遊戲
-        document.addEventListener('DOMContentLoaded', function () {
-            initializeBingoGrid();
+        // 1️⃣ 初始化階段
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchBingoById(bingoId);
             displayCurrentQuestion();
             updateGameStats();
             startTimer();
             setupEventListeners();
         });
 
-        // 初始化 Bingo 網格
-        function initializeBingoGrid() {
+        async function fetchBingoById(id) {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await fetch(`http://localhost:3000/bingo/play/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "取得 Bingo 失敗");
+
+                document.querySelector("h1").textContent = `🎯 ${data.title}`;
+                document.querySelector(".bingo-title").textContent = data.title;
+                document.querySelector(".subtitle").textContent = `探索 ${data.region} 的文化景點，完成您的賓果挑戰！`;
+
+                bingoData = data.articles.map((article, index) => ({
+                    ...article,
+                    completed: false,
+                    index
+                }));
+
+                gameStats.total = bingoData.length;
+                gameStats.completed = 0;
+                gameStats.score = 0;
+
+                renderBingoGrid();
+            } catch (err) {
+                console.error(err);
+                showNotification("無法載入 Bingo", "error");
+            }
+        }
+
+        function renderBingoGrid() {
             const grid = document.getElementById('bingoGrid');
+            grid.innerHTML = '';
             bingoData.forEach((item, index) => {
                 const cell = document.createElement('div');
                 cell.className = `bingo-cell ${item.completed ? 'completed' : ''}`;
                 cell.dataset.index = index;
 
                 cell.innerHTML = `
-                    <img src="${item.image}" alt="${item.name}">
+                    <img src="${item.imageBase64}" alt="${item.name}">
                     <div class="cell-overlay">${item.name}</div>
                 `;
 
@@ -655,135 +598,14 @@
             });
         }
 
-        // 顯示當前題目
-        function displayCurrentQuestion() {
-            if (currentQuestionIndex >= bingoData.length) {
-                currentQuestionIndex = 0;
-            }
-
-            const question = bingoData[currentQuestionIndex];
-            document.getElementById('questionImage').src = question.image;
-            document.getElementById('questionText').textContent = question.question;
-
-            const optionsContainer = document.getElementById('answerOptions');
-            optionsContainer.innerHTML = '';
-
-            question.options.forEach(option => {
-                const optionElement = document.createElement('div');
-                optionElement.className = 'answer-option';
-                optionElement.dataset.answer = option.charAt(0);
-                optionElement.textContent = option;
-
-                optionElement.addEventListener('click', () => selectAnswer(option.charAt(0)));
-                optionsContainer.appendChild(optionElement);
-            });
-
-            // 重置提交按鈕
-            document.getElementById('submitAnswer').disabled = true;
-            selectedAnswer = null;
+        function setupEventListeners() {
+            // ⛏️ 綁定「提交答案」按鈕
+            document.getElementById('submitAnswer').addEventListener('click', submitAnswer);
+            // ❌ 關閉詳情彈窗
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            document.getElementById('overlay').addEventListener('click', closeModal);
         }
-
-        // 選擇答案
-        function selectAnswer(answer) {
-            selectedAnswer = answer;
-
-            // 移除其他選項的選中狀態
-            document.querySelectorAll('.answer-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-
-            // 添加選中狀態
-            document.querySelector(`[data-answer="${answer}"]`).classList.add('selected');
-
-            // 啟用提交按鈕
-            document.getElementById('submitAnswer').disabled = false;
-        }
-
-        // 提交答案
-        function submitAnswer() {
-            if (!selectedAnswer) return;
-
-            const question = bingoData[currentQuestionIndex];
-            const isCorrect = selectedAnswer === question.correctAnswer;
-
-            if (isCorrect) {
-                // 答對了
-                question.completed = true;
-                gameStats.completed++;
-                gameStats.score += 50;
-
-                // 更新對應的格子
-                const cell = document.querySelector(`[data-index="${currentQuestionIndex}"]`);
-                cell.classList.add('completed');
-
-                showNotification('答對了！太棒了！ 🎉', 'success');
-            } else {
-                // 答錯了
-                showNotification(`答錯了！正確答案是：${question.correctAnswer}`, 'error');
-            }
-
-            // 更新統計
-            updateGameStats();
-
-            // 延遲切換到下一題
-            setTimeout(() => {
-                nextQuestion();
-            }, 2000);
-        }
-
-        // 下一題
-        function nextQuestion() {
-            // 尋找下一個未完成的題目
-            let nextIndex = currentQuestionIndex + 1;
-            let attempts = 0;
-
-            while (attempts < bingoData.length) {
-                if (nextIndex >= bingoData.length) {
-                    nextIndex = 0;
-                }
-
-                if (!bingoData[nextIndex].completed) {
-                    currentQuestionIndex = nextIndex;
-                    displayCurrentQuestion();
-                    return;
-                }
-
-                nextIndex++;
-                attempts++;
-            }
-
-            // 如果所有題目都完成了
-            showNotification('恭喜完成所有題目！🏆', 'success');
-        }
-
-        // 顯示詳細資訊
-        function showDetail(index) {
-            const item = bingoData[index];
-            document.getElementById('modalTitle').textContent = item.name;
-            document.getElementById('modalImage').src = item.image;
-            document.getElementById('modalDescription').textContent = item.description;
-
-            document.getElementById('overlay').style.display = 'block';
-            document.getElementById('detailModal').style.display = 'block';
-        }
-
-        // 關閉詳細資訊彈窗
-        function closeModal() {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('detailModal').style.display = 'none';
-        }
-
-        // 續寫 updateGameStats 函數與其餘功能
-        function updateGameStats() {
-            document.getElementById('completedCount').textContent = gameStats.completed;
-            document.getElementById('totalCount').textContent = gameStats.total;
-            document.getElementById('score').textContent = gameStats.score;
-
-            const progress = (gameStats.completed / gameStats.total) * 100;
-            document.getElementById('progressFill').style.width = `${progress}%`;
-        }
-
-        // 倒數計時器
+        
         function startTimer() {
             const timerElement = document.getElementById('remainingTime');
             const timer = setInterval(() => {
@@ -800,8 +622,123 @@
                 timerElement.textContent = `${minutes}:${seconds}`;
             }, 1000);
         }
+        
+        // 2️⃣ 顯示題目 & 詳細資訊
+        function displayCurrentQuestion() {
+           if (bingoData.length === 0) return;
 
-        // 顯示通知訊息
+            const question = bingoData[currentQuestionIndex];
+            document.getElementById('questionImage').src = question.imageBase64;
+            document.getElementById('questionText').textContent = question.question;
+
+            // 不連資料庫的選項，這裡可以隨機塞選項（或留空）
+            const optionsContainer = document.getElementById('answerOptions');
+            optionsContainer.innerHTML = '';
+            const options = ["A", "B", "C", "D"];
+            options.forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'answer-option';
+                div.dataset.answer = opt;
+                div.textContent = `${opt}. 選項文字`;
+                div.addEventListener('click', () => selectAnswer(opt));
+                optionsContainer.appendChild(div);
+            });
+
+            selectedAnswer = null;
+            document.getElementById('submitAnswer').disabled = true;
+        }
+
+        function selectAnswer(answer) {
+            selectedAnswer = answer;
+            // 移除其他選項的選中狀態
+            document.querySelectorAll('.answer-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            // 添加選中狀態
+            document.querySelector(`[data-answer="${answer}"]`).classList.add('selected');
+            // 啟用提交按鈕
+            document.getElementById('submitAnswer').disabled = false;
+        }
+
+        function submitAnswer() {
+            if (selectedAnswer === null) return;
+
+            const question = bingoData[currentQuestionIndex];
+
+            if (question.completed) {
+                showNotification("這一格已完成 ✔️", "info");
+                return;
+            }
+
+            // ✅ 模擬答對
+            question.completed = true;
+            gameStats.completed++;
+            gameStats.score += 50;
+
+            // 更新 bingo cell 樣式
+            const cell = document.querySelector(`.bingo-cell[data-index="${currentQuestionIndex}"]`);
+            cell.classList.add('completed');
+
+            updateGameStats();
+            showNotification("答對了！太棒了 🎯", "success");
+
+            // 🚫 禁用按鈕避免連點
+            document.getElementById('submitAnswer').disabled = true;
+
+            // ⏳ 1.2 秒後切換下一題
+            setTimeout(() => {
+                nextQuestion();
+            }, 1200);
+        }
+
+        function nextQuestion() {
+            let nextIndex = currentQuestionIndex + 1;
+            let attempts = 0;
+
+            while (attempts < bingoData.length) {
+                if (nextIndex >= bingoData.length) nextIndex = 0;
+                if (!bingoData[nextIndex].completed) {
+                    currentQuestionIndex = nextIndex;
+                    displayCurrentQuestion();
+                    return;
+                }
+                nextIndex++;
+                attempts++;
+            }
+
+            showNotification("🎉 全部完成！", "success");
+        }
+        
+        function updateGameStats() {
+            document.getElementById('completedCount').textContent = gameStats.completed;
+            document.getElementById('totalCount').textContent = gameStats.total;
+            document.getElementById('score').textContent = gameStats.score;
+
+            const progress = (gameStats.completed / gameStats.total) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        // 3️⃣ 彈窗細節
+        function showDetail(index) {
+            const item = bingoData[index];
+            currentQuestionIndex = index;
+
+            document.getElementById('modalTitle').textContent = item.name;
+            document.getElementById('modalImage').src = item.imageBase64;
+            document.getElementById('modalDescription').textContent = item.depiction;
+
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('detailModal').style.display = 'block';
+
+            displayCurrentQuestion(); // 同步切換 question panel
+        }
+        
+        function closeModal() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // 4️⃣ 工具 / 通用
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
@@ -809,12 +746,5 @@
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
-        }
-
-        // 事件監聽器
-        function setupEventListeners() {
-            document.getElementById('submitAnswer').addEventListener('click', submitAnswer);
-            document.getElementById('closeModal').addEventListener('click', closeModal);
-            document.getElementById('overlay').addEventListener('click', closeModal);
         }
     </script>
