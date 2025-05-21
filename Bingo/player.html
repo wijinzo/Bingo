@@ -130,53 +130,67 @@
     </div>
 
     <script>
-        // 假設這是從DB獲取的 Bingo 清單
-        const bingos = [
-            { title: "夏日海灘大冒險" },
-            { title: "萬聖節搞怪Bingo" },
-            { title: "聖誕節派對挑戰" },
-            { title: "日本動漫Bingo" },
-            { title: "懷舊經典遊戲Bingo" },
-            { title: "旅行回憶Bingo" },
-            { title: "夏日海灘大冒險" },
-            { title: "萬聖節搞怪Bingo" },
-            { title: "聖誕節派對挑戰" },
-            { title: "日本動漫Bingo" },
-            { title: "懷舊經典遊戲Bingo" },
-            { title: "旅行回憶Bingo" }
-        ];
+        let allBingos = [];
 
-        const bingoList = document.getElementById('bingoList');
+        document.addEventListener("DOMContentLoaded", async () => {
+            await fetchBingos();
+            displayBingos(allBingos);
+            setupSearch();
+        });
+
+        async function fetchBingos() {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    alert("請先登入");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const res = await fetch("http://localhost:3000/bingo/all", {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                });
+                
+                const data = await res.json();
+                allBingos = data;
+            } catch (err) {
+                console.error("取得 Bingo 清單失敗", err);
+                alert("無法取得 Bingo 資料，請稍後再試");
+            }
+        }
 
         function displayBingos(list) {
+            const bingoList = document.getElementById("bingoList");
             bingoList.innerHTML = '';
+
             list.forEach(bingo => {
                 const a = document.createElement('a');
                 a.className = 'bingo-item';
-                a.href = `player_bingo.html?title=${encodeURIComponent(bingo.title)}`;
+                a.href = `player_bingo.html?id=${bingo.id}`;
+
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'bingo-item-content';
-                contentDiv.textContent = bingo.title;
+                contentDiv.innerHTML = `
+                    <strong>${bingo.title}</strong><br>
+                    👥 ${bingo.players} 位玩家 · 📅 ${new Date(bingo.createdAt).toLocaleDateString()}
+                `;
+
                 a.appendChild(contentDiv);
                 bingoList.appendChild(a);
             });
         }
 
-        displayBingos(bingos);
-
-        function searchBingo() {
-            const input = document.getElementById('searchInput').value.toLowerCase();
-
-            // 先過濾出匹配的 Bingo 項目，並將它們放到前面
-            const filtered = bingos.filter(bingo => bingo.toLowerCase().includes(input));
-
-            // 再過濾出不匹配的 Bingo 項目
-            const notFiltered = bingos.filter(bingo => !bingo.toLowerCase().includes(input));
-
-            // 將匹配的項目放到不匹配的項目之前
-            const result = [...filtered, ...notFiltered];
-
-            displayBingos(result);
+        function setupSearch() {
+            const input = document.getElementById("searchInput");
+            input.addEventListener("input", () => {
+                const query = input.value.toLowerCase();
+                const filtered = allBingos.filter(b =>
+                    b.title.toLowerCase().includes(query)
+                );
+                displayBingos(filtered);
+            });
         }
 
 
