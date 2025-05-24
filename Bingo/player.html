@@ -626,32 +626,13 @@
         function setupSearch() {
             const input = document.getElementById("searchInput");
             input.addEventListener("input", () => {
-                const query = input.value.toLowerCase().trim();
-
-                if (!query) {
-                    // 如果沒有搜尋關鍵字，顯示原始列表
-                    displayBingos(allBingos);
-                    return;
-                }
-
-                // 將列表分成兩部分：包含關鍵字的和不包含的
-                const matches = [];
-                const others = [];
-
-                allBingos.forEach(bingo => {
-                    if (bingo.title.toLowerCase().includes(query)) {
-                        matches.push(bingo);
-                    } else {
-                        others.push(bingo);
-                    }
-                });
-
-                // 合併兩個陣列，matches 在前面
-                const sortedResults = [...matches, ...others];
-                displayBingos(sortedResults);
+                const query = input.value.toLowerCase();
+                const filtered = allBingos.filter(b =>
+                    b.title.toLowerCase().includes(query)
+                );
+                displayBingos(filtered);
             });
         }
-
         function showError(message) {
             const bingoList = document.getElementById("bingoList");
             bingoList.innerHTML = `
