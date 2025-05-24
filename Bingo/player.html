@@ -5,132 +5,524 @@
     <meta charset="UTF-8">
     <title>Bingo 搜尋</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #79b0f3, #2563eb);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        :root {
+            /* 深一點的灰色調背景 */
+            --primary-gradient: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 25%, #94a3b8 50%, #64748b 100%);
+            --secondary-gradient: linear-gradient(135deg, #1e40af 0%, #0ea5e9 50%, #06b6d4 100%);
+            --accent-color: #00d4ff;
+            --accent-bright: #38bdf8;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-light: #334155;
+            --card-bg: rgba(248, 250, 252, 0.9);
+            --card-border: rgba(148, 163, 184, 0.4);
+            --shadow-light: 0 4px 20px rgba(0, 0, 0, 0.12);
+            --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.18);
+            --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.25);
+            --glow-blue: 0 0 30px rgba(56, 189, 248, 0.4);
+            --glow-cyan: 0 0 25px rgba(0, 212, 255, 0.5);
         }
 
-        h1 {
-            margin-bottom: 20px;
-            color: #fff;
-            font-size: 48px;
-            text-align: center;
-            z-index: 10;
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
             position: relative;
         }
 
-        .search-box {
-            position: sticky;
-            top: 20px;
-            /* 搜尋列距離頂部 80px */
-            left: 50%;
-            transform: translateX(-50%);
-            /* 使搜尋列居中 */
-            width: 100%;
-            max-width: 600px;
-            margin-bottom: 30px;
-            z-index: 10;
-            /* 確保搜尋列顯示在其他元素之上 */
-        }
-
-        .overlay {
-            position: sticky;
+        body::before {
+            content: '';
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100px;
-            /* 初始高度 */
-            background: linear-gradient(to right, #79b0f3, #2563eb);
-            z-index: 5;
-            transition: height 0.3s ease;
-            /* 當高度變化時，進行平滑過渡 */
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(0, 212, 255, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 40% 80%, rgba(30, 144, 255, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(0, 191, 255, 0.08) 0%, transparent 35%);
+            pointer-events: none;
+            z-index: -1;
+            animation: floatingBg 20s ease-in-out infinite;
         }
 
+        @keyframes floatingBg {
 
-        input[type="text"] {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        .floating-elements {
+            position: fixed;
             width: 100%;
-            padding: 15px;
-            font-size: 20px;
-            border: none;
-            border-radius: 10px;
-            outline: none;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: -1;
         }
 
-        .bingo-list {
-            width: 100%;
-            max-width: 1000px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
+        .floating-dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            box-shadow: var(--glow-cyan);
+            opacity: 0.8;
+            z-index: -1;
         }
 
-        .bingo-item {
-            background-color: #ffffffcc;
-            /*padding: 40px;*/
-            padding-top: 100%;
-            border-radius: 15px;
+        .floating-dot:nth-child(1) {
+            top: 70%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-dot:nth-child(2) {
+            top: 85%;
+            left: 85%;
+            animation-delay: 2s;
+        }
+
+        .floating-dot:nth-child(3) {
+            top: 80%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        .floating-dot:nth-child(4) {
+            top: 95%;
+            left: 70%;
+            animation-delay: 1s;
+        }
+
+        .floating-dot:nth-child(5) {
+            top: 80%;
+            left: 60%;
+            animation-delay: 3s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) scale(1);
+                opacity: 0.6;
+            }
+
+            50% {
+                transform: translateY(-20px) scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        .header-section {
             text-align: center;
-            font-size: 24px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s, background-color 0.3s;
-            cursor: pointer;
+            padding: 4rem 2rem 3rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .main-title {
+            font-size: clamp(3.5rem, 8vw, 7rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #1e293b 0%, #38bdf8 50%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -3px;
+            animation: titleGlow 4s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.4));
+        }
+
+        @keyframes titleGlow {
+            0% {
+                filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.4));
+            }
+
+            100% {
+                filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.6));
+            }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+        }
+
+        .search-container {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            padding: 0 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1.5rem 1.8rem 1.5rem 4.5rem;
+            font-size: 1.1rem;
+            border: 2px solid var(--card-border);
+            border-radius: 60px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-medium);
+            outline: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        .search-input:focus {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-heavy), var(--glow-blue);
+            background: rgba(248, 250, 252, 0.95);
+            border-color: var(--accent-color);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus+.search-icon {
+            color: var(--accent-color);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .content-container {
+            padding: 0 2rem 5rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .bingo-grid {
+            width: 100%;
+            max-width: 1300px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2.5rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bingo-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            display: block;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-light);
+            backdrop-filter: blur(20px);
+        }
+
+        .bingo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--secondary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .bingo-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.05) 0%, transparent 70%);
+            transform: scale(0);
+            transition: transform 0.5s ease;
+        }
+
+        .bingo-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .bingo-card:hover::after {
+            transform: scale(1);
+        }
+
+        .bingo-card:hover {
+            transform: translateY(-12px) scale(1.03);
+            box-shadow: var(--shadow-heavy), var(--glow-blue);
+            background: rgba(248, 250, 252, 0.98);
+            border-color: var(--accent-color);
+        }
+
+        .bingo-card:active {
+            transform: translateY(-6px) scale(1.01);
+        }
+
+        .card-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.3;
+            flex: 1;
+        }
+
+        .card-badge {
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-left: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .badge-hot {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .badge-recommended {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+
+        .badge-new {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .card-stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .stat-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--accent-color);
+        }
+
+        .players-count {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .date-text {
+            color: var(--text-secondary);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 5rem 2rem;
+            color: var(--text-secondary);
+            font-size: 1.3rem;
+        }
+
+        .no-results-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.7;
+        }
+
+        .loading {
+            display: flex;
             justify-content: center;
-            position: relative
+            align-items: center;
+            padding: 5rem;
         }
 
-        .bingo-item .bingo-item-content {
-            position: absolute;
-            color: black;
-            /* 使其垂直居中 */
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.2rem;
-            /* 這裡設定文字大小 */
-            font-weight: bold;
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(56, 189, 248, 0.2);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: var(--glow-cyan);
         }
 
-        /* 添加微小的動畫效果 */
-        .bingo-item:active {
-            transform: translateY(3px);
-            background-color: #91c3f3;
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
-        .bingo-item:hover {
-            transform: translateY(-5px);
-            background-color: #adceff;
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .header-section {
+                padding: 3rem 1rem 2rem;
+            }
+
+            .main-title {
+                font-size: 3.5rem;
+            }
+
+            .search-container {
+                padding: 0 1rem;
+                top: 1rem;
+            }
+
+            .content-container {
+                padding: 0 1rem 4rem;
+            }
+
+            .bingo-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .bingo-card {
+                padding: 2rem;
+            }
+
+            .card-stats {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-title {
+                font-size: 3rem;
+            }
+
+            .search-input {
+                padding: 1.2rem 1.5rem 1.2rem 4rem;
+                font-size: 1rem;
+            }
+
+            .search-icon {
+                left: 1.5rem;
+                width: 20px;
+                height: 20px;
+            }
+
+            .bingo-card {
+                padding: 1.8rem;
+            }
         }
     </style>
 </head>
 
 <body>
-
-    <h1>Bingo</h1>
-
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="搜尋 Bingo..." onkeyup="searchBingo()">
+    <div class="floating-elements">
+        <div class="floating-dot"></div>
+        <div class="floating-dot"></div>
+        <div class="floating-dot"></div>
+        <div class="floating-dot"></div>
+        <div class="floating-dot"></div>
     </div>
 
-    <div class="overlay"></div>
-    <div class="bingo-list" id="bingoList">
-        <!-- Bingo 清單 -->
+    <div class="header-section">
+        <h1 class="main-title">🎯 Bingo</h1>
+        <p class="subtitle">探索精彩的 Bingo 遊戲世界</p>
+    </div>
+
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="搜尋你想要的 Bingo 遊戲...">
+            <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <div class="bingo-grid" id="bingoList">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
     </div>
 
     <script>
         let allBingos = [];
+        let isLoading = false;
 
         document.addEventListener("DOMContentLoaded", async () => {
             await fetchBingos();
@@ -163,39 +555,123 @@
 
         function displayBingos(list) {
             const bingoList = document.getElementById("bingoList");
+
+            if (isLoading) {
+                bingoList.innerHTML = `
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (list.length === 0) {
+                bingoList.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <p>沒有找到符合條件的 Bingo 遊戲</p>
+                    </div>
+                `;
+                return;
+            }
+
             bingoList.innerHTML = '';
 
-            list.forEach(bingo => {
-                const a = document.createElement('a');
-                a.className = 'bingo-item';
-                a.href = `player_bingo.html?id=${bingo.id}`;
+            list.forEach((bingo, index) => {
+                const card = document.createElement('a');
+                card.className = 'bingo-card';
+                card.href = `player_bingo.html?id=${bingo.id}`;
+                card.style.animationDelay = `${index * 0.1}s`;
 
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'bingo-item-content';
-                contentDiv.innerHTML = `
-                    <strong>${bingo.title}</strong><br>
-                    👥 ${bingo.players} 位玩家 · 📅 ${new Date(bingo.createdAt).toLocaleDateString()}
+                const { text, className } = getBadgeInfo(bingo.players);
+                const formattedDate = new Date(bingo.createdAt).toLocaleDateString('zh-TW', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3 class="card-title">${bingo.title}</h3>
+                        <span class="card-badge ${className}">${text}</span>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-item">
+                            <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                            </svg>
+                            <span class="players-count">${bingo.players}</span>
+                            <span>位玩家</span>
+                        </div>
+                        <div class="stat-item">
+                            <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 0v1m6-1v1m-6 0H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-3"></path>
+                            </svg>
+                            <span class="date-text">${formattedDate}</span>
+                        </div>
+                    </div>
                 `;
 
-                a.appendChild(contentDiv);
-                bingoList.appendChild(a);
+                bingoList.appendChild(card);
             });
+        }
+
+        function getBadgeInfo(players) {
+            if (players >= 200) return { text: "熱門", className: "badge-hot" };
+            if (players >= 100) return { text: "推薦", className: "badge-recommended" };
+            return { text: "新推出", className: "badge-new" };
         }
 
         function setupSearch() {
             const input = document.getElementById("searchInput");
             input.addEventListener("input", () => {
-                const query = input.value.toLowerCase();
-                const filtered = allBingos.filter(b =>
-                    b.title.toLowerCase().includes(query)
-                );
-                displayBingos(filtered);
+                const query = input.value.toLowerCase().trim();
+
+                if (!query) {
+                    // 如果沒有搜尋關鍵字，顯示原始列表
+                    displayBingos(allBingos);
+                    return;
+                }
+
+                // 將列表分成兩部分：包含關鍵字的和不包含的
+                const matches = [];
+                const others = [];
+
+                allBingos.forEach(bingo => {
+                    if (bingo.title.toLowerCase().includes(query)) {
+                        matches.push(bingo);
+                    } else {
+                        others.push(bingo);
+                    }
+                });
+
+                // 合併兩個陣列，matches 在前面
+                const sortedResults = [...matches, ...others];
+                displayBingos(sortedResults);
             });
         }
 
+        function showError(message) {
+            const bingoList = document.getElementById("bingoList");
+            bingoList.innerHTML = `
+                <div class="no-results">
+                    <div class="no-results-icon">⚠️</div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
 
+        // 添加平滑滾動效果
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.bingo-card')) {
+                const card = e.target.closest('.bingo-card');
+                card.style.transform = 'translateY(-6px) scale(0.98)';
+                setTimeout(() => {
+                    card.style.transform = '';
+                }, 150);
+            }
+        });
     </script>
-
 </body>
 
 </html>
