@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成就排行榜 - Bingo 遊戲</title>
+    <style>
+        :root {
+            --primary-color: #2dd4bf;
+            --secondary-color: #0f766e;
+            --background-color: #f8fafc;
+            --text-color: #334155;
+            --accent-color: #f59e0b;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --gold-color: #ffd700;
+            --silver-color: #c0c0c0;
+            --bronze-color: #cd7f32;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            color: var(--text-color);
+            padding: 15px 20px;
+            z-index: 999;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 100px auto 0;
+            padding: 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title h2 {
+            font-size: 3rem;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-color);
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .leaderboard-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .leaderboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .leaderboard-header h3 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .leaderboard-list {
+            padding: 0;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .leaderboard-item:hover {
+            background: rgba(45, 212, 191, 0.05);
+            transform: translateX(5px);
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .rank {
+            font-size: 1.5rem;
+            font-weight: bold;
+            width: 60px;
+            text-align: center;
+            margin-right: 20px;
+        }
+
+        .rank.gold {
+            color: var(--gold-color);
+            text-shadow: 1px 1px 2px rgba(255, 215, 0, 0.5);
+        }
+
+        .rank.silver {
+            color: var(--silver-color);
+            text-shadow: 1px 1px 2px rgba(192, 192, 192, 0.5);
+        }
+
+        .rank.bronze {
+            color: var(--bronze-color);
+            text-shadow: 1px 1px 2px rgba(205, 127, 50, 0.5);
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+        }
+
+        .player-stats {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .bingo-count {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .trophy-icon {
+            position: absolute;
+            right: 25px;
+            font-size: 1.5rem;
+            opacity: 0.3;
+        }
+
+        .crown {
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            font-size: 2rem;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--primary-color);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(45, 212, 191, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-button {
+            padding: 10px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-button:hover, .filter-button.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .page-title h2 {
+                font-size: 2rem;
+            }
+
+            .leaderboard-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+                padding: 25px 15px;
+            }
+
+            .rank {
+                margin: 0;
+            }
+
+            .player-avatar {
+                margin: 0;
+            }
+
+            .bingo-count {
+                min-width: auto;
+            }
+
+            .filters {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .filter-button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🏆 成就排行榜</h1>
+            <div class="nav-links">
+                <a href="home.html" class="nav-link">首頁</a>
+                <a href="creator_dashboard.html" class="nav-link">創作者面板</a>
+                <a href="player.html" class="nav-link">遊戲大廳</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="page-title">
+            <h2>🏆 成就排行榜</h2>
+            <p class="page-subtitle">看看誰是最強的 Bingo 達人！</p>
+        </div>
+
+        <!-- 統計總覽 -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-number" id="totalPlayers">0</div>
+                <div class="stat-label">總玩家數</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalCompletions">0</div>
+                <div class="stat-label">總完成數</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="averageCompletions">0</div>
+                <div class="stat-label">平均完成數</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="topPlayerScore">0</div>
+                <div class="stat-label">最高分數</div>
+            </div>
+        </div>
+
+        <!-- 篩選器 -->
+        <div class="filters">
+            <button class="filter-button active" data-filter="all">全部玩家</button>
+            <button class="filter-button" data-filter="top10">前 10 名</button>
+            <button class="filter-button" data-filter="recent">本月新星</button>
+        </div>
+
+        <!-- 排行榜 -->
+        <div class="leaderboard-container">
+            <div class="leaderboard-header">
+                <h3>🎮 Bingo 完成排行榜</h3>
+                <p>根據完成的 Bingo 數量排名</p>
+            </div>
+            
+            <div class="loading" id="loadingState">
+                <div class="loading-spinner"></div>
+                <p>載入排行榜中...</p>
+            </div>
+
+            <div class="leaderboard-list" id="leaderboardList" style="display: none;">
+                <!-- 動態生成的排行榜項目會出現在這裡 -->
+            </div>
+
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-state-icon">🏆</div>
+                <h3>還沒有排行榜資料</h3>
+                <p>快去完成一些 Bingo 遊戲吧！</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 模擬 API
+            let leaderboardData = [];
+            let filteredData = [];
+            let currentFilter = 'all';
+
+            // DOM 元素
+            const loadingState = document.getElementById('loadingState');
+            const leaderboardList = document.getElementById('leaderboardList');
+            const emptyState = document.getElementById('emptyState');
+            const filterButtons = document.querySelectorAll('.filter-button');
+
+            // 統計元素
+            const totalPlayers = document.getElementById('totalPlayers');
+            const totalCompletions = document.getElementById('totalCompletions');
+            const averageCompletions = document.getElementById('averageCompletions');
+            const topPlayerScore = document.getElementById('topPlayerScore');
+
+            // 初始化
+            fetchLeaderboard();
+
+            // 模擬從後端獲取排行榜資料
+            async function fetchLeaderboard() {
+                try {
+                    // 模擬 API 延遲
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+
+                    // 模擬排行榜資料
+                    leaderboardData = generateMockData();
+                    filteredData = [...leaderboardData];
+                    
+                    updateStats();
+                    renderLeaderboard();
+                    
+                    loadingState.style.display = 'none';
+                    leaderboardList.style.display = 'block';
+                } catch (error) {
+                    console.error('載入排行榜失敗：', error);
+                    loadingState.innerHTML = '<p style="color: var(--error-color);">載入失敗，請重新整理頁面</p>';
+                }
+            }
+
+            // 生成模擬資料
+            function generateMockData() {
+                const names = [
+                    '探險家小明', 'Bingo達人', '謎題獵人', '挑戰者阿華', 'Lucky玩家',
+                    '智慧女神', '解謎專家', '冒險王子', 'Puzzle Master', '遊戲高手',
+                    '腦力激盪', '思考者', '創意玩家', '邏輯達人', '推理高手',
+                    '觀察家', '細心玩家', '耐心達人', '完美主義者', '挑戰之王'
+                ];
+
+                return names.map((name, index) => ({
+                    id: index + 1,
+                    name: name,
+                    completedBingos: Math.max(1, Math.floor(Math.random() * 50) + (20 - index)),
+                    avatar: name.charAt(0),
+                    joinDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                    lastActive: Math.floor(Math.random() * 30) + 1
+                })).sort((a, b) => b.completedBingos - a.completedBingos);
+            }
+
+            // 更新統計資料
+            function updateStats() {
+                const total = leaderboardData.length;
+                const totalComplete = leaderboardData.reduce((sum, player) => sum + player.completedBingos, 0);
+                const average = total > 0 ? Math.round(totalComplete / total) : 0;
+                const topScore = total > 0 ? leaderboardData[0].completedBingos : 0;
+
+                animateNumber(totalPlayers, total);
+                animateNumber(totalCompletions, totalComplete);
+                animateNumber(averageCompletions, average);
+                animateNumber(topPlayerScore, topScore);
+            }
+
+            // 數字動畫效果
+            function animateNumber(element, target) {
+                const start = 0;
+                const duration = 1000;
+                const step = (target - start) / (duration / 16);
+                let current = start;
+
+                const timer = setInterval(() => {
+                    current += step;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    element.textContent = Math.floor(current);
+                }, 16);
+            }
+
+            // 渲染排行榜
+            function renderLeaderboard() {
+                if (filteredData.length === 0) {
+                    leaderboardList.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                leaderboardList.style.display = 'block';
+                emptyState.style.display = 'none';
+
+                leaderboardList.innerHTML = filteredData.map((player, index) => {
+                    const rank = index + 1;
+                    let rankClass = '';
+                    let trophy = '';
+                    let crown = '';
+
+                    if (rank === 1) {
+                        rankClass = 'gold';
+                        trophy = '🥇';
+                        crown = '<div class="crown">👑</div>';
+                    } else if (rank === 2) {
+                        rankClass = 'silver';
+                        trophy = '🥈';
+                    } else if (rank === 3) {
+                        rankClass = 'bronze';
+                        trophy = '🥉';
+                    } else if (rank <= 10) {
+                        trophy = '🏆';
+                    } else {
+                        trophy = '🎮';
+                    }
+
+                    return `
+                        <div class="leaderboard-item">
+                            ${crown}
+                            <div class="rank ${rankClass}">${rank}</div>
+                            <div class="player-avatar">${player.avatar}</div>
+                            <div class="player-info">
+                                <div class="player-name">${player.name}</div>
+                                <div class="player-stats">
+                                    加入日期：${player.joinDate} | ${player.lastActive} 天前活躍
+                                </div>
+                            </div>
+                            <div class="bingo-count">${player.completedBingos}</div>
+                            <div class="trophy-icon">${trophy}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 篩選功能
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // 更新按鈕狀態
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    // 更新篩選器
+                    currentFilter = button.dataset.filter;
+                    applyFilter();
+                    renderLeaderboard();
+                });
+            });
+
+            // 應用篩選
+            function applyFilter() {
+                switch (currentFilter) {
+                    case 'top10':
+                        filteredData = leaderboardData.slice(0, 10);
+                        break;
+                    case 'recent':
+                        // 模擬本月新加入的玩家
+                        filteredData = leaderboardData.filter(player => 
+                            new Date(player.joinDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                        );
+                        break;
+                    default:
+                        filteredData = [...leaderboardData];
+                }
+            }
+
+            // 真實 API 呼叫範例（目前使用模擬資料）
+            /*
+            async function fetchLeaderboard() {
+                try {
+                    const response = await fetch('http://localhost:3000/leaderboard');
+                    const data = await response.json();
+                    leaderboardData = data;
+                    filteredData = [...leaderboardData];
+                    updateStats();
+                    renderLeaderboard();
+                    loadingState.style.display = 'none';
+                    leaderboardList.style.display = 'block';
+                } catch (error) {
+                    console.error('載入排行榜失敗：', error);
+                    loadingState.innerHTML = '<p style="color: var(--error-color);">載入失敗，請重新整理頁面</p>';
+                }
+            }
+            */
+        });
+    </script>
+</body>
+
+</html>

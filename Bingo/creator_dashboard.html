@@ -470,6 +470,8 @@
 </head>
 
 <body>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <div class="header">
         <div class="header-content">
             <h1>📋 Bingo 管理面板</h1>
@@ -516,10 +518,17 @@
                     <span>📝</span>
                     批量編輯
                 </button>
+                <button class="control-button secondary" id="achieveBtn">
+                    <span>📝</span>
+                    成就
+                </button>
                 <button class="control-button secondary" id="exportBtn">
                     <span>📤</span>
                     匯出資料
                 </button>
+                <div style="margin-top: 20px;">
+                     <canvas id="clickChart" width="400" height="200" style="display: none;"></canvas>
+                </div>
                 <button class="control-button warning" id="bulkArchiveBtn">
                     <span>📦</span>
                     批量封存
@@ -892,9 +901,12 @@
                 showNotification('批量編輯功能開發中...', 'warning');
             });
 
-            document.getElementById('exportBtn').addEventListener('click', () => {
-                showNotification('匯出功能開發中...', 'warning');
+            document.getElementById('achieveBtn').addEventListener('click', () => {
+                window.location.href = "achievement.html";
             });
+            /*document.getElementById('exportBtn').addEventListener('click', () => {
+                showNotification('匯出功能開發中...', 'warning');
+            });*/
 
             document.getElementById('bulkArchiveBtn').addEventListener('click', () => {
                 showNotification('批量封存功能開發中...', 'warning');
@@ -911,7 +923,52 @@
                 }
             });
         });
+
     </script>
+    <!-- 加 Chart.js 套件（放在你 HTML 最下方） -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- 你自己的 JavaScript -->
+<script>
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const canvas = document.getElementById('clickChart');
+    canvas.style.display = 'block'; // 顯示圖表區塊
+
+    const ctx = canvas.getContext('2d');
+
+    // 若圖表已存在就先清掉
+    if (window.myChart) {
+      window.myChart.destroy();
+    }
+
+    // 假資料：這個月 30 天的隨機點擊數（你之後可以從後端撈）
+    const days = Array.from({ length: 30 }, (_, i) => `${i + 1}日`);
+    const clicks = Array.from({ length: 30 }, () => Math.floor(Math.random() * 100));
+
+    window.myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: [{
+          label: '每日點擊數',
+          data: clicks,
+          backgroundColor: 'rgba(75, 192, 192, 0.5)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  });
+</script>
+
 </body>
 
 </html>

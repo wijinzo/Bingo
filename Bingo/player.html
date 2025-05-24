@@ -1,0 +1,404 @@
+<<<<<<< HEAD:Bingo-main/Bingo/player.html
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Bingo 搜尋</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #79b0f3, #2563eb);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 48px;
+            text-align: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .search-box {
+            position: sticky;
+            top: 20px;
+            /* 搜尋列距離頂部 80px */
+            left: 50%;
+            transform: translateX(-50%);
+            /* 使搜尋列居中 */
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 30px;
+            z-index: 10;
+            /* 確保搜尋列顯示在其他元素之上 */
+        }
+
+        .overlay {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            /* 初始高度 */
+            background: linear-gradient(to right, #79b0f3, #2563eb);
+            z-index: 5;
+            transition: height 0.3s ease;
+            /* 當高度變化時，進行平滑過渡 */
+        }
+
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            border: none;
+            border-radius: 10px;
+            outline: none;
+        }
+
+        .bingo-list {
+            width: 100%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .bingo-item {
+            background-color: #ffffffcc;
+            /*padding: 40px;*/
+            padding-top: 100%;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 24px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, background-color 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative
+        }
+
+        .bingo-item .bingo-item-content {
+            position: absolute;
+            color: black;
+            /* 使其垂直居中 */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            /* 這裡設定文字大小 */
+            font-weight: bold;
+        }
+
+        /* 添加微小的動畫效果 */
+        .bingo-item:active {
+            transform: translateY(3px);
+            background-color: #91c3f3;
+        }
+
+        .bingo-item:hover {
+            transform: translateY(-5px);
+            background-color: #adceff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Bingo</h1>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="搜尋 Bingo..." onkeyup="searchBingo()">
+    </div>
+
+    <div class="overlay"></div>
+    <div class="bingo-list" id="bingoList">
+        <!-- Bingo 清單 -->
+    </div>
+
+    <script>
+        let allBingos = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await fetchBingos();
+            displayBingos(allBingos);
+            setupSearch();
+        });
+
+        async function fetchBingos() {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    alert("請先登入");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const res = await fetch("http://localhost:3000/bingo/all", {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                });
+                
+                const data = await res.json();
+                allBingos = data;
+            } catch (err) {
+                console.error("取得 Bingo 清單失敗", err);
+                alert("無法取得 Bingo 資料，請稍後再試");
+            }
+        }
+
+        function displayBingos(list) {
+            const bingoList = document.getElementById("bingoList");
+            bingoList.innerHTML = '';
+
+            list.forEach(bingo => {
+                const a = document.createElement('a');
+                a.className = 'bingo-item';
+                a.href = `player_bingo.html?id=${bingo.id}`;
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'bingo-item-content';
+                contentDiv.innerHTML = `
+                    <strong>${bingo.title}</strong><br>
+                    👥 ${bingo.players} 位玩家 · 📅 ${new Date(bingo.createdAt).toLocaleDateString()}
+                `;
+
+                a.appendChild(contentDiv);
+                bingoList.appendChild(a);
+            });
+        }
+
+        function setupSearch() {
+            const input = document.getElementById("searchInput");
+            input.addEventListener("input", () => {
+                const query = input.value.toLowerCase();
+                const filtered = allBingos.filter(b =>
+                    b.title.toLowerCase().includes(query)
+                );
+                displayBingos(filtered);
+            });
+        }
+
+
+    </script>
+
+</body>
+
+=======
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Bingo 搜尋</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #79b0f3, #2563eb);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 48px;
+            text-align: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .search-box {
+            position: sticky;
+            top: 20px;
+            /* 搜尋列距離頂部 80px */
+            left: 50%;
+            transform: translateX(-50%);
+            /* 使搜尋列居中 */
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 30px;
+            z-index: 10;
+            /* 確保搜尋列顯示在其他元素之上 */
+        }
+
+        .overlay {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            /* 初始高度 */
+            background: linear-gradient(to right, #79b0f3, #2563eb);
+            z-index: 5;
+            transition: height 0.3s ease;
+            /* 當高度變化時，進行平滑過渡 */
+        }
+
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            border: none;
+            border-radius: 10px;
+            outline: none;
+        }
+
+        .bingo-list {
+            width: 100%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .bingo-item {
+            background-color: #ffffffcc;
+            /*padding: 40px;*/
+            padding-top: 100%;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 24px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, background-color 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative
+        }
+
+        .bingo-item .bingo-item-content {
+            position: absolute;
+            color: black;
+            /* 使其垂直居中 */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            /* 這裡設定文字大小 */
+            font-weight: bold;
+        }
+
+        /* 添加微小的動畫效果 */
+        .bingo-item:active {
+            transform: translateY(3px);
+            background-color: #91c3f3;
+        }
+
+        .bingo-item:hover {
+            transform: translateY(-5px);
+            background-color: #adceff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Bingo</h1>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="搜尋 Bingo..." onkeyup="searchBingo()">
+    </div>
+
+    <div class="overlay"></div>
+    <div class="bingo-list" id="bingoList">
+        <!-- Bingo 清單 -->
+    </div>
+
+    <script>
+        let allBingos = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await fetchBingos();
+            displayBingos(allBingos);
+            setupSearch();
+        });
+
+        async function fetchBingos() {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    alert("請先登入");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const res = await fetch("http://localhost:3000/bingo/all", {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                });
+                
+                const data = await res.json();
+                allBingos = data;
+            } catch (err) {
+                console.error("取得 Bingo 清單失敗", err);
+                alert("無法取得 Bingo 資料，請稍後再試");
+            }
+        }
+
+        function displayBingos(list) {
+            const bingoList = document.getElementById("bingoList");
+            bingoList.innerHTML = '';
+
+            list.forEach(bingo => {
+                const a = document.createElement('a');
+                a.className = 'bingo-item';
+                a.href = `player_bingo.html?id=${bingo.id}`;
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'bingo-item-content';
+                contentDiv.innerHTML = `
+                    <strong>${bingo.title}</strong><br>
+                    👥 ${bingo.players} 位玩家 · 📅 ${new Date(bingo.createdAt).toLocaleDateString()}
+                `;
+
+                a.appendChild(contentDiv);
+                bingoList.appendChild(a);
+            });
+        }
+
+        function setupSearch() {
+            const input = document.getElementById("searchInput");
+            input.addEventListener("input", () => {
+                const query = input.value.toLowerCase();
+                const filtered = allBingos.filter(b =>
+                    b.title.toLowerCase().includes(query)
+                );
+                displayBingos(filtered);
+            });
+        }
+
+
+    </script>
+
+</body>
+
+>>>>>>> upstream/main:Bingo/player.html
+</html>
