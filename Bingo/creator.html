@@ -781,6 +781,10 @@
             <input type="text" inputmode="numeric" maxlength="1" id="bingoPasslimit" placeholder="通過數量">
             <div class="character-count" id="bingoPasslimit-count">0/1</div>
         </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="hashtag" maxlength="50" placeholder="Hashtag (選填)">
+            <div class="character-count" id="hashtag-count">0/100</div>
+        </div>
     </div>
 `;
 
@@ -793,6 +797,8 @@
             const bingoRegionInput = document.getElementById('bingoRegion');
             const bingoRewardInput = document.getElementById('bingoReward');
             const bingoPasslimitInput = document.getElementById('bingoPasslimit');
+            const hashtagInput = document.getElementById('hashtag');
+
             bingoTitleInput.addEventListener('input', () => {
                 const count = bingoTitleInput.value.length;
                 document.getElementById('bingoTitle-count').textContent = `${count}/20`;
@@ -810,6 +816,11 @@
                 bingoPasslimitInput.value = bingoPasslimitInput.value.replace(/\D/g, '').slice(0, 1);
                 const count = bingoPasslimitInput.value.length;
                 document.getElementById('bingoPasslimit-count').textContent = `${count}/1`;
+            });
+            
+            hashtagInput.addEventListener('input', () => {
+                const count = hashtagInput.value.length;
+                document.getElementById('hashtag-count').textContent = `${count}/20`;
             });
 
             // 顯示區塊（顯示在賓果卡上方）
@@ -856,9 +867,6 @@
             initializeUploadArea();
 
             function initializeGrid() {
-
-
-
                 gridWrapper.innerHTML = '';
                 for (let i = 0; i < TOTAL_CELLS; i++) {
                     const cell = document.createElement("div");
