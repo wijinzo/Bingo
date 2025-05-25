@@ -1210,7 +1210,7 @@
                     const div = document.createElement('div');
                     div.className = 'answer-option';
                     div.dataset.answer = opt;
-                    div.textContent = `${opt}. 選項文字`;
+                    div.textContent = `${opt}`;
                     div.addEventListener('click', () => selectAnswer(opt));
                     optionsContainer.appendChild(div);
                 });
