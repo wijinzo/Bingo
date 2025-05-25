@@ -70,7 +70,32 @@
                 transform: scale(1.05);
             }
         }
-
+        .filter-select {
+            height: 100%;
+            padding: 1.5rem 1.8rem 1.5rem 1.8rem;
+            font-size: 1.1rem;
+            border: 2px solid var(--card-border);
+            border-radius: 60px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-medium);
+            outline: none;
+            color: var(--text-primary);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+            appearance: none; /* 移除原生箭頭樣式 */
+            background-image: url("data:image/svg+xml,%3Csvg fill='none' stroke='%23475669' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1.2rem center;
+            background-size: 1rem;
+            margin-left: 1rem;
+        }
+        .filter-select:focus {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-heavy), var(--glow-blue);
+            background: rgba(248, 250, 252, 0.95);
+            border-color: var(--accent-color);
+        }
         .floating-elements {
             position: fixed;
             width: 100%;
@@ -431,10 +456,9 @@
         }
 
         .card-stats {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 每行兩欄 */
+            gap: 1rem 2rem; /* 行距列距 */
         }
 
         .stat-item {
@@ -591,6 +615,11 @@
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
         </div>
+        <select id="searchFilter" class="filter-select">
+            <option value="">所有BINGO</option>
+            <option value="region">地區搜尋</option>
+            <option value="hashtag">標籤搜尋</option>
+        </select>
     </div>
 
     <div class="content-container">
@@ -690,6 +719,21 @@
                             </svg>
                             <span class="date-text">${formattedDate}</span>
                         </div>
+                        <div class="stat-item">
+                            <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 12.414a4 4 0 10-1.414 1.414l4.243 4.243a1 1 0 001.414-1.414z">
+                                </path>
+                            </svg>
+                            <span>${bingo.region || '未設定地區'}</span>
+                        </div>
+                        <div class="stat-item">
+                            <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 9h10M7 15h10M11 3L9 21M15 3l-2 18" />
+                            </svg>
+                            <span>${bingo.hashtag || '無標籤'}</span>
+                        </div>
                     </div>
                 `;
 
@@ -705,12 +749,41 @@
 
         function setupSearch() {
             const input = document.getElementById("searchInput");
-            input.addEventListener("input", () => {
-                const query = input.value.toLowerCase();
-                const filtered = allBingos.filter(b =>
-                    b.title.toLowerCase().includes(query)
-                );
+            const searchFilter = document.getElementById("searchFilter");
+
+            const search = () => {
+                const query = input.value.toLowerCase().trim();
+                const filter = searchFilter.value;
+
+                const filtered = allBingos.filter(b => {
+                    const title = b.title?.toLowerCase() || '';
+                    const region = b.region?.toLowerCase() || '';
+                    const hashtag = b.hashtag?.toLowerCase() || '';
+
+                    if (!query) return true; // 若沒輸入搜尋詞就顯示全部
+
+                    if (filter === "region") {
+                        return region.includes(query);
+                    } else if (filter === "hashtag") {
+                        return hashtag.includes(query);
+                    } else {
+                        return title.includes(query);
+                    }
+                });
+
                 displayBingos(filtered);
+            };
+
+            input.addEventListener("input", search);
+            searchFilter.addEventListener("change", () => {
+                // 可選：變更 placeholder 更貼近語意
+                const placeholderMap = {
+                    region: "輸入地區關鍵字...",
+                    hashtag: "輸入標籤關鍵字...",
+                    "": "搜尋你想要的 Bingo 遊戲..."
+                };
+                input.placeholder = placeholderMap[searchFilter.value] || placeholderMap[""];
+                search();
             });
         }
         function setupSearch() {

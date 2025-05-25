@@ -807,8 +807,8 @@
         <div style="display: flex; gap: 10px; align-items: center;">
             <input type="text" inputmode="numeric" maxlength="4" id="bingoReward" placeholder="獎勵點數">
             <div class="character-count" id="bingoReward-count">0/4</div>
-            <input type="text" inputmode="numeric" maxlength="1" id="bingoPasslimit" placeholder="通過數量">
-            <div class="character-count" id="bingoPasslimit-count">0/1</div>
+            <input type="text" inputmode="numeric" maxlength="2" id="bingoPasslimit" placeholder="時間限制(分鐘)">
+            <div class="character-count" id="bingoPasslimit-count">0/2</div>
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
             <input type="text" id="hashtag" maxlength="50" placeholder="Hashtag (選填)">
@@ -842,9 +842,9 @@
                 document.getElementById('bingoReward-count').textContent = `${count}/4`;
             });
             bingoPasslimitInput.addEventListener('input', () => {
-                bingoPasslimitInput.value = bingoPasslimitInput.value.replace(/\D/g, '').slice(0, 1);
+                bingoPasslimitInput.value = bingoPasslimitInput.value.replace(/\D/g, '').slice(0, 2);
                 const count = bingoPasslimitInput.value.length;
-                document.getElementById('bingoPasslimit-count').textContent = `${count}/1`;
+                document.getElementById('bingoPasslimit-count').textContent = `${count}/2`;
             });
 
             hashtagInput.addEventListener('input', () => {
@@ -1032,59 +1032,6 @@
                 }
             }
 
-            // upload one for button in entry(上傳區)(刪除)
-            /*function handleUpload(button) {
-                const entry = button.closest('.entry');
-                const dataId = parseInt(entry.getAttribute('data-id'));
-                const id = Math.floor(dataId / 2);
-
-                const imageEntry = document.querySelector(`.entry[data-id="${id * 2}"]`);
-                const textEntry = document.querySelector(`.entry[data-id="${id * 2 + 1}"]`);
-
-                const titleInput = imageEntry.querySelector('input[id^="title-"]');
-                const locationInput = textEntry.querySelector('textarea[id^="location-"]');
-                const locaDescInput = textEntry.querySelector('textarea[id^="loca-desc-"]');
-                const topicDescInput = textEntry.querySelector('textarea[id^="topic-desc-"]');
-                const answerInput = textEntry.querySelector('textarea[id^="answer-desc-"]');
-                const rewardInput = textEntry.querySelector('textarea[id^="reward-desc-"]');
-                const fileInput = imageEntry.querySelector('input[type="file"]');
-                const cell = document.querySelector(`.cell[data-id="${id}"]`);
-
-                const title = titleInput?.value.trim();
-                const location = locationInput?.value.trim();
-                const locaDesc = locaDescInput?.value.trim();
-                const topicDesc = topicDescInput?.value.trim();
-                const reward = rewardInput?.value.trim();
-                const answer = answerInput?.value.trim();
-                const file = fileInput?.files[0];
-
-                if (!title || !location || !locaDesc || !topicDesc || !file) {
-                    alert('請填寫所有欄位並選擇圖片！');
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const imgSrc = e.target.result;
-
-                    // 更新 cell 圖片與標題
-                    cell.innerHTML = '';
-                    const img = document.createElement('img');
-                    img.src = imgSrc;
-                    cell.appendChild(img);
-
-                    const titleOverlay = document.createElement('div');
-                    titleOverlay.className = 'title-overlay';
-                    titleOverlay.textContent = title;
-                    cell.appendChild(titleOverlay);
-
-                    cell.classList.add('filled');
-
-                    showNotification('施工中');
-                };
-                reader.readAsDataURL(file);
-            }*/
-
             // 上傳圖片至網站(限制2MB)&預覽圖片
             function handleFileUpload(e) {
                 const file = e.target.files[0];
@@ -1236,9 +1183,10 @@
                 const body = {
                     owner: parseInt(userId),
                     title: bingoTitle,
-                    region: document.getElementById("bingoRegion").value.trim() || "未指定",
+                    region: document.getElementById("bingoRegion").value.trim() || "",
                     reward: parseInt(document.getElementById("bingoReward").value.trim()) || 0,
                     passlimit: parseInt(document.getElementById("bingoPasslimit").value.trim()) || 0,
+                    hashtag: document.getElementById("hashtag").value.trim() || "",
                     articles
                 };
 
@@ -1302,9 +1250,10 @@
                     // 設定 Bingo 標題、region、reward、passlimit
                     document.getElementById("bingoReward").value = bingo.reward;
                     document.getElementById("bingoPasslimit").value = bingo.passlimit;
-                    document.getElementById("bingoRegion").value = bingo.region;
+                    document.getElementById("bingoRegion").value = bingo.region || "";
                     document.getElementById("bingoTitle").value = bingo.title;
                     document.getElementById("bingoTitleDisplay").textContent = bingo.title;
+                    document.getElementById("hashtag").value = bingo.hashtag || "";
 
                     // 載入格子與上傳區內容
                     for (let i = 0; i < articles.length; i++) {
@@ -1407,9 +1356,10 @@
                 const body = {
                     owner: parseInt(userId),
                     title: bingoTitle,
-                    region: document.getElementById("bingoRegion").value.trim() || "未指定",
+                    region: document.getElementById("bingoRegion").value.trim() || "",
                     reward: parseInt(document.getElementById("bingoReward").value.trim()) || 0,
                     passlimit: parseInt(document.getElementById("bingoPasslimit").value.trim()) || 0,
+                    hashtag: document.getElementById("hashtag").value.trim() || "",
                     articles
                 };
 
