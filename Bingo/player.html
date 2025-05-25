@@ -90,17 +90,17 @@
             animation: float 6s ease-in-out infinite;
             box-shadow: var(--glow-cyan);
             opacity: 0.8;
-            z-index: -1;
+            /* z-index: -1; */
         }
 
         .floating-dot:nth-child(1) {
-            top: 70%;
+            top: 20%;
             left: 10%;
             animation-delay: 0s;
         }
 
         .floating-dot:nth-child(2) {
-            top: 85%;
+            top: 60%;
             left: 85%;
             animation-delay: 2s;
         }
@@ -112,13 +112,13 @@
         }
 
         .floating-dot:nth-child(4) {
-            top: 95%;
+            top: 30%;
             left: 70%;
             animation-delay: 1s;
         }
 
         .floating-dot:nth-child(5) {
-            top: 80%;
+            top: 90%;
             left: 60%;
             animation-delay: 3s;
         }
@@ -136,6 +136,75 @@
                 opacity: 1;
             }
         }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            color: var(--text-color);
+            padding: 15px 20px;
+            z-index: 999;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-text {
+            font-size: 28px;
+            background: linear-gradient(135deg, #1e40af, #0ea5e9, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+            /* 如果有空隙可微調 */
+        }
+
+        .logo-link {
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: lightskyblue;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link:hover {
+            background: linear-gradient(225deg, #1e40af 0%, #0ea5e9 50%, #06b6d4 100%);
+            color: white;
+        }
+
 
         .header-section {
             text-align: center;
@@ -155,6 +224,7 @@
             letter-spacing: -3px;
             animation: titleGlow 4s ease-in-out infinite alternate;
             filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.4));
+            margin-top: 50px;
         }
 
         @keyframes titleGlow {
@@ -485,11 +555,21 @@
                 padding: 1.8rem;
             }
         }
-        
     </style>
 </head>
 
 <body>
+    <div class="header">
+        <div class="header-content">
+            <h1 class="logo-text"><a href="home.html" class="logo-text">Bingo</a></h1>
+            <div class="nav-links">
+                <a href="creator_dashboard.html" class="nav-link">創作者面板</a>
+                <a href="player.html" class="nav-link">遊戲大廳</a>
+                <a href="achievement.html" class="nav-link">成就排行榜</a>
+            </div>
+        </div>
+    </div>
+
     <div class="floating-elements">
         <div class="floating-dot"></div>
         <div class="floating-dot"></div>
@@ -499,7 +579,7 @@
     </div>
 
     <div class="header-section">
-        <h1 class="main-title">🎯 Bingo</h1>
+        <h1 class="main-title"> Bingo</h1>
         <p class="subtitle">探索精彩的 Bingo 遊戲世界</p>
     </div>
 
@@ -541,11 +621,11 @@
                 }
 
                 const res = await fetch("http://localhost:3000/bingo/all", {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
                 });
-                
+
                 const data = await res.json();
                 allBingos = data;
             } catch (err) {
@@ -633,14 +713,35 @@
                 displayBingos(filtered);
             });
         }
-        function showError(message) {
-            const bingoList = document.getElementById("bingoList");
-            bingoList.innerHTML = `
-                <div class="no-results">
-                    <div class="no-results-icon">⚠️</div>
-                    <p>${message}</p>
-                </div>
-            `;
+        function setupSearch() {
+            const input = document.getElementById("searchInput");
+            let searchTimeout;
+
+            input.addEventListener("input", () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const query = input.value.toLowerCase().trim();
+
+                    if (query === '') {
+                        displayBingos(allBingos);
+                        return;
+                    }
+
+                    const filtered = allBingos.filter(bingo =>
+                        bingo.title.toLowerCase().includes(query)
+                    );
+
+                    displayBingos(filtered);
+                }, 300);
+            });
+
+            input.addEventListener("focus", () => {
+                input.parentElement.style.transform = "scale(1.02)";
+            });
+
+            input.addEventListener("blur", () => {
+                input.parentElement.style.transform = "scale(1)";
+            });
         }
 
         // 添加平滑滾動效果
