@@ -847,103 +847,6 @@
                 }
             }
 
-            async function fetchComments() {
-                try {
-                    const token = localStorage.getItem("token");
-                    if (!bingoId) {
-                        console.error("無法獲取 bingoId");
-                        return;
-                    }
-
-                    const response = await fetch(`http://localhost:3000/comments/${bingoId}`, {
-                        method: 'GET',
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const data = await response.json();
-                    comments = data.map(comment => ({
-                        id: comment.id,
-                        content: comment.Message,
-                        userId: comment.userId,
-                        username: comment.username,
-                        bingoId: comment.bingoId,
-                        createdAt: comment.createdAt
-                    }));
-
-                    updateCommentsList();
-                } catch (error) {
-                    console.error("獲取留言失敗:", error);
-                    showNotification("無法加載留言，請檢查網絡連接", "error");
-                }
-            }
-
-            async function saveCommentToDatabase(comment) {
-                const token = localStorage.getItem("token");
-                const response = await fetch('http://localhost:3000/comments', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        bingoId: comment.bingoId,
-                        message: comment.content
-                        // 用戶ID從token中提取
-                    })
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || '保存留言失敗');
-                }
-
-                return await response.json();
-            }
-
-            /*async function updateCommentLikes(commentId, newLikesCount, isLiked) {
-                const token = localStorage.getItem("token");
-                const response = await fetch(`http://localhost:3000/comments/${commentId}/like`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        like: isLiked
-                    })
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || '更新點讚失敗');
-                }
-
-                return await response.json();
-            }*/
-
-            async function deleteComment(commentId) {
-                const token = localStorage.getItem("token");
-                const response = await fetch(`http://localhost:3000/comments/${commentId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || '刪除留言失敗');
-                }
-
-                return await response.json();
-            }
-
             async function fetchBingoById(id) {
                 try {
                     const token = localStorage.getItem("token");
@@ -992,166 +895,7 @@
                 }
             }
 
-            function addComment() {
-                const commentInput = document.getElementById('commentInput');
-                const commentText = commentInput.value.trim();
-
-                // 驗證留言不為空
-                if (!commentText) {
-                    showNotification("請輸入留言內容", "error");
-                    return;
-                }
-
-                // 創建新留言對象
-                const newComment = {
-                    bingoId: bingoId, // 使用當前 Bingo 的 ID
-                    author: currentUser.name,
-                    avatar: currentUser.avatar,
-                    content: commentText,
-                    date: new Date(),
-                    likes: 0,
-                    isLiked: false
-                };
-
-                // 禁用發佈按鈕，避免重複提交
-                document.getElementById('submitComment').disabled = true;
-
-                // 發送到資料庫
-                saveCommentToDatabase(newComment)
-                    .then(() => {
-                        // 清空輸入框
-                        clearCommentInput();
-                        // 重新獲取最新留言列表
-                        fetchComments();
-                        // 顯示成功通知
-                        showNotification("留言發佈成功！", "success");
-                    })
-                    .catch(error => {
-                        console.error("保存留言失敗:", error);
-                        showNotification("發佈留言時出錯，請稍後再試", "error");
-                    })
-                    .finally(() => {
-                        // 啟用發佈按鈕
-                        document.getElementById('submitComment').disabled = false;
-                    });
-            }
-
-            function updateCommentsList() {
-                const commentsList = document.getElementById('commentsList');
-                const commentCount = document.getElementById('commentCount');
-
-                // 更新留言數量
-                commentCount.textContent = comments.length;
-
-                // 如果沒有留言，顯示提示
-                if (comments.length === 0) {
-                    commentsList.innerHTML = '<div class="no-comments">目前還沒有留言，成為第一個留言的人吧！</div>';
-                    return;
-                }
-
-                // 渲染所有留言
-                commentsList.innerHTML = comments.map(comment => {
-                    const date = new Date(comment.createdAt);
-                    const formattedDate = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-
-                    // 檢查當前用戶是否是留言作者
-                    const isAuthor = String(comment.userId) === String(currentUser.id);
-
-                    // 準備刪除按鈕 (只有作者可見)
-                    const deleteButton = isAuthor ? `
-                <div class="comment-action delete-action" onclick="confirmDeleteComment('${comment._id || comment.id}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                        <line x1="10" y1="11" x2="10" y2="17"/>
-                        <line x1="14" y1="11" x2="14" y2="17"/>
-                    </svg>
-                    <span>刪除</span>
-                </div>
-            ` : '';
-
-                    return `
-                <div class="comment-item" data-id="${comment._id || comment.id}">
-                    <div class="comment-author">
-                        <div class="comment-author-avatar">
-                            <img src="${comment.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.username || 'User')}&background=random`}" alt="${comment.username || comment.author}">
-                        </div>
-                        <div class="comment-author-info">
-                            <span class="comment-author-name">${comment.username || comment.author}</span>
-                            <span class="comment-date">${formattedDate}</span>
-                        </div>
-                    </div>
-                    <div class="comment-content">${comment.content}</div>
-                    <div class="comment-actions">
-                        <div class="comment-action reply-action" onclick="replyToComment('${comment._id || comment.id}')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6m-6-6l6-6"/>
-                            </svg>
-                            <span>回覆</span>
-                        </div>
-                        ${deleteButton}
-                    </div>
-                </div>
-            `;
-                }).join('');
-            }
-
-            function clearCommentInput() {
-                document.getElementById('commentInput').value = '';
-            }
-
-            function toggleLike(commentId) {
-                // 找到對應留言
-                const comment = comments.find(c => c.id === commentId);
-                if (!comment) return;
-
-                // 準備要更新的數據
-                const newLikeStatus = !comment.isLiked;
-                const newLikesCount = newLikeStatus ? comment.likes + 1 : comment.likes - 1;
-
-                // 更新資料庫中的點讚狀態
-                updateCommentLikes(commentId, newLikesCount, newLikeStatus)
-                    .then(() => {
-                        // 更新本地狀態
-                        comment.isLiked = newLikeStatus;
-                        comment.likes = newLikesCount;
-                        // 更新UI
-                        updateCommentsList();
-                    })
-                    .catch(error => {
-                        console.error("更新點讚失敗:", error);
-                        showNotification("點讚操作失敗，請稍後再試", "error");
-                    });
-            }
-
-            function replyToComment(commentId) {
-                // 找到對應留言的作者
-                const comment = comments.find(c => (c._id || c.id) === commentId);
-                if (!comment) return;
-
-                // 在輸入框中添加回覆前綴
-                const commentInput = document.getElementById('commentInput');
-                commentInput.value = `@${comment.username || comment.author} `;
-                commentInput.focus();
-
-                // 滾動到留言表單
-                document.querySelector('.comment-form').scrollIntoView({ behavior: 'smooth' });
-            }
-
-            function confirmDeleteComment(commentId) {
-                if (confirm('確定要刪除這條留言嗎？此操作無法撤銷。')) {
-                    deleteComment(commentId)
-                        .then(() => {
-                             // 刪除後重新取得留言（與後端同步）
-                            fetchComments();
-                            showNotification("留言已成功刪除", "success");
-                        })
-                        .catch(error => {
-                            console.error("刪除留言失敗:", error);
-                            showNotification("刪除留言失敗，請稍後再試", "error");
-                        });
-                }
-            }
-            function renderBingoGrid() {
+             function renderBingoGrid() {
                 const grid = document.getElementById('bingoGrid');
                 grid.innerHTML = '';
                 bingoData.forEach((item, index) => {
@@ -1318,6 +1062,266 @@
                     notification.classList.remove('show');
                 }, 3000);
             }
+
+            async function fetchComments() {
+                try {
+                    const token = localStorage.getItem("token");
+                    if (!bingoId) {
+                        console.error("無法獲取 bingoId");
+                        return;
+                    }
+
+                    const response = await fetch(`http://localhost:3000/comments/${bingoId}`, {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    comments = data.map(comment => ({
+                        id: comment.id,
+                        content: comment.Message,
+                        userId: comment.userId,
+                        username: comment.username,
+                        bingoId: comment.bingoId,
+                        createdAt: comment.createdAt
+                    }));
+
+                    updateCommentsList();
+                } catch (error) {
+                    console.error("獲取留言失敗:", error);
+                    showNotification("無法加載留言，請檢查網絡連接", "error");
+                }
+            }
+
+            async function saveCommentToDatabase(comment) {
+                const token = localStorage.getItem("token");
+                const response = await fetch('http://localhost:3000/comments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        bingoId: comment.bingoId,
+                        message: comment.content
+                        // 用戶ID從token中提取
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || '保存留言失敗');
+                }
+
+                return await response.json();
+            }
+
+            /*async function updateCommentLikes(commentId, newLikesCount, isLiked) {
+                const token = localStorage.getItem("token");
+                const response = await fetch(`http://localhost:3000/comments/${commentId}/like`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        like: isLiked
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || '更新點讚失敗');
+                }
+
+                return await response.json();
+            }*/
+
+            async function deleteComment(commentId) {
+                const token = localStorage.getItem("token");
+                const response = await fetch(`http://localhost:3000/comments/${commentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || '刪除留言失敗');
+                }
+
+                return await response.json();
+            }
+
+            
+
+            function addComment() {
+                const commentInput = document.getElementById('commentInput');
+                const commentText = commentInput.value.trim();
+
+                // 驗證留言不為空
+                if (!commentText) {
+                    showNotification("請輸入留言內容", "error");
+                    return;
+                }
+
+                // 創建新留言對象
+                const newComment = {
+                    bingoId: bingoId, // 使用當前 Bingo 的 ID
+                    author: currentUser.name,
+                    avatar: currentUser.avatar,
+                    content: commentText,
+                    date: new Date(),
+                    likes: 0,
+                    isLiked: false
+                };
+
+                // 禁用發佈按鈕，避免重複提交
+                document.getElementById('submitComment').disabled = true;
+
+                // 發送到資料庫
+                saveCommentToDatabase(newComment)
+                    .then(() => {
+                        // 清空輸入框
+                        clearCommentInput();
+                        // 重新獲取最新留言列表
+                        fetchComments();
+                        // 顯示成功通知
+                        showNotification("留言發佈成功！", "success");
+                    })
+                    .catch(error => {
+                        console.error("保存留言失敗:", error);
+                        showNotification("發佈留言時出錯，請稍後再試", "error");
+                    })
+                    .finally(() => {
+                        // 啟用發佈按鈕
+                        document.getElementById('submitComment').disabled = false;
+                    });
+            }
+
+            function updateCommentsList() {
+                const commentsList = document.getElementById('commentsList');
+                const commentCount = document.getElementById('commentCount');
+
+                // 更新留言數量
+                commentCount.textContent = comments.length;
+
+                // 如果沒有留言，顯示提示
+                if (comments.length === 0) {
+                    commentsList.innerHTML = '<div class="no-comments">目前還沒有留言，成為第一個留言的人吧！</div>';
+                    return;
+                }
+
+                // 渲染所有留言
+                commentsList.innerHTML = comments.map(comment => {
+                    const date = new Date(comment.createdAt);
+                    const formattedDate = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
+                    // 檢查當前用戶是否是留言作者
+                    const isAuthor = String(comment.userId) === String(currentUser.id);
+
+                    // 準備刪除按鈕 (只有作者可見)
+                    const deleteButton = isAuthor ? `
+                <div class="comment-action delete-action" onclick="confirmDeleteComment('${comment._id || comment.id}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                        <line x1="10" y1="11" x2="10" y2="17"/>
+                        <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                    <span>刪除</span>
+                </div>
+            ` : '';
+
+                    return `
+                <div class="comment-item" data-id="${comment._id || comment.id}">
+                    <div class="comment-author">
+                        <div class="comment-author-avatar">
+                            <img src="${comment.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.username || 'User')}&background=random`}" alt="${comment.username || comment.author}">
+                        </div>
+                        <div class="comment-author-info">
+                            <span class="comment-author-name">${comment.username || comment.author}</span>
+                            <span class="comment-date">${formattedDate}</span>
+                        </div>
+                    </div>
+                    <div class="comment-content">${comment.content}</div>
+                    <div class="comment-actions">
+                        <div class="comment-action reply-action" onclick="replyToComment('${comment._id || comment.id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6m-6-6l6-6"/>
+                            </svg>
+                            <span>回覆</span>
+                        </div>
+                        ${deleteButton}
+                    </div>
+                </div>
+            `;
+                }).join('');
+            }
+
+            function clearCommentInput() {
+                document.getElementById('commentInput').value = '';
+            }
+
+            function toggleLike(commentId) {
+                // 找到對應留言
+                const comment = comments.find(c => c.id === commentId);
+                if (!comment) return;
+
+                // 準備要更新的數據
+                const newLikeStatus = !comment.isLiked;
+                const newLikesCount = newLikeStatus ? comment.likes + 1 : comment.likes - 1;
+
+                // 更新資料庫中的點讚狀態
+                updateCommentLikes(commentId, newLikesCount, newLikeStatus)
+                    .then(() => {
+                        // 更新本地狀態
+                        comment.isLiked = newLikeStatus;
+                        comment.likes = newLikesCount;
+                        // 更新UI
+                        updateCommentsList();
+                    })
+                    .catch(error => {
+                        console.error("更新點讚失敗:", error);
+                        showNotification("點讚操作失敗，請稍後再試", "error");
+                    });
+            }
+
+            function replyToComment(commentId) {
+                // 找到對應留言的作者
+                const comment = comments.find(c => (c._id || c.id) === commentId);
+                if (!comment) return;
+
+                // 在輸入框中添加回覆前綴
+                const commentInput = document.getElementById('commentInput');
+                commentInput.value = `@${comment.username || comment.author} `;
+                commentInput.focus();
+
+                // 滾動到留言表單
+                document.querySelector('.comment-form').scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function confirmDeleteComment(commentId) {
+                if (confirm('確定要刪除這條留言嗎？此操作無法撤銷。')) {
+                    deleteComment(commentId)
+                        .then(() => {
+                             // 刪除後重新取得留言（與後端同步）
+                            fetchComments();
+                            showNotification("留言已成功刪除", "success");
+                        })
+                        .catch(error => {
+                            console.error("刪除留言失敗:", error);
+                            showNotification("刪除留言失敗，請稍後再試", "error");
+                        });
+                }
+            }
+           
             
         </script>
 </body>
