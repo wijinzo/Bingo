@@ -37,15 +37,17 @@
             top: 0;
             left: 0;
             width: 100%;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            color: var(--text-color);
             padding: 15px 20px;
             z-index: 999;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .header-content {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
@@ -53,8 +55,36 @@
         }
 
         .header h1 {
-            font-size: 24px;
-            margin: 0;
+            font-size: 28px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
         }
 
         .user-info {
@@ -474,10 +504,11 @@
 
     <div class="header">
         <div class="header-content">
-            <h1>📋 Bingo 管理面板</h1>
-            <div class="user-info">
-                <div class="user-avatar">👨‍💼</div>
-                <span id="userNameDisplay">創作者</span>
+            <h1 style="text-align: left;"><a href="home.html" style="text-decoration: none; color: inherit;">創作者管理面板</a></h1>
+            <div class="nav-links"> 
+                <a href="creator_dashboard.html" class="nav-link">創作者面板</a>
+                <a href="player.html" class="nav-link">遊戲大廳</a>
+                <a href="achievement.html" class="nav-link">成就排行榜</a>
             </div>
         </div>
     </div>
@@ -518,10 +549,7 @@
                     <span>📝</span>
                     批量編輯
                 </button>
-                <button class="control-button secondary" id="achieveBtn">
-                    <span>📝</span>
-                    完成排行榜
-                </button>
+                
                 <button class="control-button secondary" id="exportBtn">
                     <span>📤</span>
                     匯出資料
@@ -901,9 +929,7 @@
                 showNotification('批量編輯功能開發中...', 'warning');
             });
 
-            document.getElementById('achieveBtn').addEventListener('click', () => {
-                window.location.href = "achievement.html";
-            });
+
             /*document.getElementById('exportBtn').addEventListener('click', () => {
                 showNotification('匯出功能開發中...', 'warning');
             });*/
