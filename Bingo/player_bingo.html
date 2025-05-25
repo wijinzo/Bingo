@@ -42,6 +42,29 @@
             padding: 20px;
         }
 
+        .back-btn {
+            position: absolute;
+            top: 28px;
+            left: 32px;
+            font-size: 2rem;
+            text-decoration: none;
+            color: var(--secondary-color);
+            background: white;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-light);
+            z-index: 10;
+            transition: color 0.2s, box-shadow 0.2s;
+        }
+        .back-btn:hover {
+            color: var(--primary-color);
+            box-shadow: 0 4px 16px rgba(45, 212, 191, 0.15);
+        }
+
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -682,6 +705,11 @@
 
 <body>
     <div class="header">
+        <a href="player.html" class="back-btn" title="返回遊戲大廳">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </a>
         <h1>🎯 台北文化探索 Bingo</h1>
         <div class="subtitle">探索台北的文化景點，完成您的賓果挑戰！</div>
     </div>
@@ -729,10 +757,10 @@
                     </div>
                     <div class="answer-section">
                         <div class="answer-options" id="answerOptions">
-                            <div class="answer-option" data-answer="A">A. 龍山寺</div>
-                            <div class="answer-option" data-answer="B">B. 行天宮</div>
-                            <div class="answer-option" data-answer="C">C. 保安宮</div>
-                            <div class="answer-option" data-answer="D">D. 孔廟</div>
+                            <div class="answer-option" data-answer="A">A</div>
+                            <div class="answer-option" data-answer="B">B</div>
+                            <div class="answer-option" data-answer="C">C</div>
+                            <div class="answer-option" data-answer="D">D</div>
                         </div>
                         <button class="submit-answer" id="submitAnswer" disabled>提交答案</button>
                     </div>
@@ -800,6 +828,19 @@
             // 1️⃣ 初始化階段
             document.addEventListener('DOMContentLoaded', async () => {
                 await fetchBingoById(bingoId);
+                // 💾 載入玩家紀錄
+                const completedArticleIds = await fetchPlayerRecords(bingoId);
+                // 比對並套用 completed 狀態
+                bingoData.forEach((article, index) => {
+                    if (completedArticleIds.includes(article.id)) {
+                        article.completed = true;
+                        const cell = document.querySelector(`.bingo-cell[data-index="${index}"]`);
+                        if (cell) cell.classList.add("completed");
+                    }
+                });
+                gameStats.completed = completedArticleIds.length;
+                gameStats.score = completedArticleIds.length * 50;
+
                 displayCurrentQuestion();
                 updateGameStats();
                 setupEventListeners();
@@ -895,6 +936,26 @@
                 }
             }
 
+            async function fetchPlayerRecords(bingoId) {
+                const token = localStorage.getItem("token");
+                if (!token) return [];
+
+                try {
+                    const res = await fetch(`http://localhost:3000/record/${bingoId}`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    if (!res.ok) throw new Error("紀錄讀取失敗");
+                    const result = await res.json();
+                    return result.completed || [];
+                } catch (err) {
+                    console.error("取得玩家紀錄失敗：", err);
+                    return [];
+                }
+            }
+
              function renderBingoGrid() {
                 const grid = document.getElementById('bingoGrid');
                 grid.innerHTML = '';
@@ -942,23 +1003,31 @@
             function displayCurrentQuestion() {
                 if (bingoData.length === 0) return;
 
-                const question = bingoData[currentQuestionIndex];
-                document.getElementById('questionImage').src = question.imageBase64;
-                document.getElementById('questionText').textContent = question.question;
+                const current = bingoData[currentQuestionIndex];
 
-                // 不連資料庫的選項，這裡可以隨機塞選項（或留空）
+                // 顯示題目圖片
+                const img = document.getElementById('questionImage');
+                img.src = current.imageBase64 || '/api/placeholder/200/200';
+
+                // 題目文字（含選項敘述一起塞進來）
+                document.getElementById('questionText').textContent = current.question;
+
+                // 答案選項固定 A~D
+                const options = ["A", "B", "C", "D"];
                 const optionsContainer = document.getElementById('answerOptions');
                 optionsContainer.innerHTML = '';
-                const options = ["A", "B", "C", "D"];
+
                 options.forEach(opt => {
-                    const div = document.createElement('div');
-                    div.className = 'answer-option';
-                    div.dataset.answer = opt;
-                    div.textContent = `${opt}`;
-                    div.addEventListener('click', () => selectAnswer(opt));
-                    optionsContainer.appendChild(div);
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'answer-option';
+                    optionDiv.dataset.answer = opt;
+                    optionDiv.textContent = opt;
+
+                    optionDiv.addEventListener('click', () => selectAnswer(opt));
+                    optionsContainer.appendChild(optionDiv);
                 });
 
+                // Reset 狀態
                 selectedAnswer = null;
                 document.getElementById('submitAnswer').disabled = true;
             }
@@ -969,8 +1038,11 @@
                 document.querySelectorAll('.answer-option').forEach(option => {
                     option.classList.remove('selected');
                 });
-                // 添加選中狀態
-                document.querySelector(`[data-answer="${answer}"]`).classList.add('selected');
+                // 標記當前選中的答案
+                const selectedElement = document.querySelector(`.answer-option[data-answer="${answer}"]`);
+                if (selectedElement) {
+                    selectedElement.classList.add('selected');
+                }
                 // 啟用提交按鈕
                 document.getElementById('submitAnswer').disabled = false;
             }
@@ -985,17 +1057,45 @@
                     return;
                 }
 
-                // ✅ 模擬答對
-                question.completed = true;
-                gameStats.completed++;
-                gameStats.score += 50;
+                const isCorrect = selectedAnswer === question.answer;
+                if (isCorrect) {
+                    question.completed = true;
+                    gameStats.completed++;
+                    gameStats.score += 50;
 
-                // 更新 bingo cell 樣式
-                const cell = document.querySelector(`.bingo-cell[data-index="${currentQuestionIndex}"]`);
-                cell.classList.add('completed');
+                    // ✅ 更新該格子為已完成
+                    const cell = document.querySelector(`.bingo-cell[data-index="${currentQuestionIndex}"]`);
+                    if (cell) {
+                        cell.classList.add('completed');
+                    }
 
+                    // ✅ 新增紀錄
+                    const token = localStorage.getItem("token");
+                    const userId = localStorage.getItem("userId");
+                    const bingoId = new URLSearchParams(window.location.search).get("id");
+
+                    fetch("http://localhost:3000/record", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            articleId: question.id,
+                            playerId: parseInt(userId),
+                            gameId: parseInt(bingoId)
+                        })
+                    }).then(res => {
+                        if (!res.ok) {
+                            console.warn("⚠️ 無法儲存遊戲紀錄");
+                        }
+                    }).catch(err => console.error("儲存錯誤：", err));
+
+                    showNotification("答對了！太棒了 🎯", "success");
+                } else {
+                    showNotification(`答錯了 😢 正確答案是：${question.answer}`, "error");
+                }
                 updateGameStats();
-                showNotification("答對了！太棒了 🎯", "success");
 
                 // 禁用按鈕避免連點
                 document.getElementById('submitAnswer').disabled = true;
@@ -1160,8 +1260,6 @@
                 return await response.json();
             }
 
-            
-
             function addComment() {
                 const commentInput = document.getElementById('commentInput');
                 const commentText = commentInput.value.trim();
@@ -1320,9 +1418,7 @@
                             showNotification("刪除留言失敗，請稍後再試", "error");
                         });
                 }
-            }
-           
-            
+            }           
         </script>
 </body>
 
