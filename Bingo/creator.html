@@ -1154,7 +1154,7 @@
                 const body = {
                     owner: parseInt(userId),
                     title: bingoTitle,
-                    region: document.getElementById("bingoRegion").value.trim() || "未指定",
+                    region: document.getElementById("bingoRegion").value.trim() || "",
                     reward: parseInt(document.getElementById("bingoReward").value.trim()) || 0,
                     passlimit: parseInt(document.getElementById("bingoPasslimit").value.trim()) || 0,
                     hashtag: document.getElementById("hashtag").value.trim() || "",
@@ -1221,7 +1221,7 @@
                     // 設定 Bingo 標題、region、reward、passlimit
                     document.getElementById("bingoReward").value = bingo.reward;
                     document.getElementById("bingoPasslimit").value = bingo.passlimit;
-                    document.getElementById("bingoRegion").value = bingo.region;
+                    document.getElementById("bingoRegion").value = bingo.region || "";
                     document.getElementById("bingoTitle").value = bingo.title;
                     document.getElementById("bingoTitleDisplay").textContent = bingo.title;
                     document.getElementById("hashtag").value = bingo.hashtag || "";
@@ -1327,7 +1327,7 @@
                 const body = {
                     owner: parseInt(userId),
                     title: bingoTitle,
-                    region: document.getElementById("bingoRegion").value.trim() || "未指定",
+                    region: document.getElementById("bingoRegion").value.trim() || "",
                     reward: parseInt(document.getElementById("bingoReward").value.trim()) || 0,
                     passlimit: parseInt(document.getElementById("bingoPasslimit").value.trim()) || 0,
                     hashtag: document.getElementById("hashtag").value.trim() || "",
