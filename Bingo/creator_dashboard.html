@@ -638,8 +638,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            loadUserName(); // ← 獲取使用者名稱
-
             let bingoList = []; // ← 所有 Bingo 清單
             let filteredBingoList = []; // ← 篩選後的 Bingo 清單
             
@@ -662,6 +660,7 @@
             const bulkActionModal = document.getElementById('bulkActionModal');
 
             // 初始化
+            //loadUserName(); // ← 獲取使用者名稱
             fetchBingoList();       // ← 從後端取得 Bingo 清單
 
             // 獲取使用者名稱
