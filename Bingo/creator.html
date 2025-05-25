@@ -44,32 +44,58 @@
             top: 0;
             left: 0;
             width: 100%;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 15px;
-            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            color: var(--text-color);
+            padding: 15px 20px;
             z-index: 999;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-            text-align: center;
-            margin: 0;
-            flex: 1;
-        }
-
-        .return-button {
-            color: white;
-            font-size: 2.2rem;
+            font-size: 28px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             display: flex;
             align-items: center;
-            transition: color 0.2s, transform 0.2s;
-            margin-right: 10px;
-            text-decoration: none;
+            gap: 10px;
         }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+
+
 
         .return-button:hover {
             color: var(--accent-color);
@@ -678,12 +704,15 @@
 
 <body>
     <div class="header">
-        <a href="creator_dashboard.html" class="return-button">
-            <i class="bi bi-arrow-left-circle"></i>
-        </a>
-        <h1>Bingo 製作</h1>
-        <div style="width:2.2rem"></div> <!-- 佔位，讓標題能正中 -->
-
+        <div class="header-content">
+            <h1 style="text-align: left;"><a href="home.html" style="text-decoration: none; color: inherit;">bingo製作</a>
+            </h1>
+            <div class="nav-links">
+                <a href="creator_dashboard.html" class="nav-link">創作者面板</a>
+                <a href="player.html" class="nav-link">遊戲大廳</a>
+                <a href="achievement.html" class="nav-link">成就排行榜</a>
+            </div>
+        </div>
     </div>
 
 
@@ -817,7 +846,7 @@
                 const count = bingoPasslimitInput.value.length;
                 document.getElementById('bingoPasslimit-count').textContent = `${count}/2`;
             });
-            
+
             hashtagInput.addEventListener('input', () => {
                 const count = hashtagInput.value.length;
                 document.getElementById('hashtag-count').textContent = `${count}/20`;
@@ -932,18 +961,18 @@
                         </div>
                         <div class="input-container">
                             <div class="input-label">景點/特色介紹</div>
-                            <textarea id="loca-desc-${i}" maxlength="${MAX_DESC_LENGTH}" placeholder="請輸入景點敘述"></textarea>
+                            <textarea id="loca-desc-${i}" maxlength="${MAX_DESC_LENGTH}" placeholder="請輸入介紹"></textarea>
                             <div class="character-count" id="loca-desc-${i}-count">0/${MAX_DESC_LENGTH}</div>
                         </div>
                         <div class="input-container">
                             <div class="input-label">題目敘述</div>
-                            <textarea id="topic-desc-${i}" maxlength="${MAX_DESC_LENGTH}" placeholder="請輸入題目敘述"></textarea>
+                            <textarea id="topic-desc-${i}" maxlength="${MAX_DESC_LENGTH}" placeholder="請輸入題目敘述與選項ABCD，例如: 資料庫管理的影片Demo應該什麼時候交？A.5/26 B.5/27 C.6/2 D.你來不及了"></textarea>
                             <div class="character-count" id="topic-desc-${i}-count">0/${MAX_DESC_LENGTH}</div>
                         </div>
                         
                         <div class="input-container">
                             <div class="input-label">答案</div>
-                            <textarea id="answer-desc-${i}" maxlength="1" placeholder="請輸入答案的選項代號，例如A" style="height:10px;"></textarea>                            <div class="character-count" id="answer-desc-${i}-count">0/${1}</div>
+                            <textarea id="answer-desc-${i}" maxlength="1" placeholder="請輸入答案的選項代號，例如B" style="height:10px;"></textarea>                            <div class="character-count" id="answer-desc-${i}-count">0/${1}</div>
                         </div>
                         
                         
