@@ -786,37 +786,7 @@
                 search();
             });
         }
-        function setupSearch() {
-            const input = document.getElementById("searchInput");
-            let searchTimeout;
-
-            input.addEventListener("input", () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    const query = input.value.toLowerCase().trim();
-
-                    if (query === '') {
-                        displayBingos(allBingos);
-                        return;
-                    }
-
-                    const filtered = allBingos.filter(bingo =>
-                        bingo.title.toLowerCase().includes(query)
-                    );
-
-                    displayBingos(filtered);
-                }, 300);
-            });
-
-            input.addEventListener("focus", () => {
-                input.parentElement.style.transform = "scale(1.02)";
-            });
-
-            input.addEventListener("blur", () => {
-                input.parentElement.style.transform = "scale(1)";
-            });
-        }
-
+        
         // 添加平滑滾動效果
         document.addEventListener('click', (e) => {
             if (e.target.closest('.bingo-card')) {
