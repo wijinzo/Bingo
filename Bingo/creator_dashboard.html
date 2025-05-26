@@ -717,8 +717,9 @@
             // 更新統計
             function updateStats() {
                 totalBingos.textContent = bingoList.length;
-                publishedBingos.textContent = bingoList.filter(b => b.status === 'published').length;
-                draftBingos.textContent = bingoList.filter(b => b.status === 'draft').length;
+                publishedBingos.textContent = bingoList.length;
+                //publishedBingos.textContent = bingoList.filter(b => b.status === 'published').length; //未實作功能
+                //draftBingos.textContent = bingoList.filter(b => b.status === 'draft').length;
                 totalPlayers.textContent = bingoList.reduce((sum, b) => sum + b.players, 0);
             }
 
@@ -770,12 +771,13 @@
 
             // 獲取狀態文字
             function getStatusText(status) {
-                const statusMap = {
+                /*const statusMap = {
                     'draft': '草稿',
                     'published': '已發布',
                     'archived': '已封存'
                 };
-                return statusMap[status] || status;
+                return statusMap[status] || status;*/
+                return "已發布"; // 目前只顯示已發布
             }
 
             // 顯示通知
